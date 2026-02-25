@@ -31,9 +31,13 @@ function MockClient(token::String = "test_token"; responses::Dict = Dict{String,
 
             # Check if response is an error
             if get(resp, "ok", false)
+                throw(Telegram.TelegramError(resp))
+            elseif haskey(resp, "result")
+                # Return the result field for successful responses
                 return resp["result"]
             else
-                throw(Telegram.TelegramError(resp))
+                # For responses that return true directly (like setMyProfilePhoto)
+                return resp
             end
         else
             # Default successful response for getMe
@@ -238,9 +242,5 @@ Extract timestamp from parameters dictionary.
 function extract_timestamp_from_params(params::Dict)
     return get(params, "_timestamp", "")
 end
-
-export MockClient
-export success_response, error_response
-export get_me_response, get_updates_response, send_message_response, set_chat_title_response
 
 end # module
