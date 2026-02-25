@@ -1877,4 +1877,160 @@ end
     end
 end
 
+# RF-064: User profile and audio methods
+@testset "User Profile and Audio Methods" begin
+    @testset "getUserProfileAudios" begin
+        @testset "successful getUserProfileAudios" begin
+            responses = Dict("getUserProfileAudios" => Dict(
+                "total_count" => 1,
+                "audios" => [Dict("file_id" => "audio_1")]
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getUserProfileAudios(tg; user_id = 123)
+            @test result["total_count"] == 1
+        end
+    end
+
+    @testset "getUserProfilePhotos" begin
+        @testset "successful getUserProfilePhotos with offset" begin
+            responses = Dict("getUserProfilePhotos" => Dict(
+                "total_count" => 5,
+                "photos" => []
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getUserProfilePhotos(tg; user_id = 123, offset = 1, limit = 2)
+            @test result["total_count"] == 5
+        end
+    end
+end
+
+# RF-065: Additional send methods
+@testset "Additional Send Methods" begin
+    @testset "sendAnimation" begin
+        @testset "successful sendAnimation" begin
+            responses = Dict("sendAnimation" => Dict(
+                "message_id" => 123,
+                "animation" => Dict("file_id" => "anim_1")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendAnimation(tg; chat_id = 123, animation = "animation_file")
+            @test result["message_id"] == 123
+        end
+    end
+
+    @testset "sendAudio" begin
+        @testset "successful sendAudio" begin
+            responses = Dict("sendAudio" => Dict(
+                "message_id" => 124,
+                "audio" => Dict("file_id" => "audio_1")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendAudio(tg; chat_id = 123, audio = "audio_file")
+            @test result["message_id"] == 124
+        end
+    end
+
+    @testset "sendVoice" begin
+        @testset "successful sendVoice" begin
+            responses = Dict("sendVoice" => Dict(
+                "message_id" => 125,
+                "voice" => Dict("file_id" => "voice_1")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendVoice(tg; chat_id = 123, voice = "voice_file")
+            @test result["message_id"] == 125
+        end
+    end
+
+    @testset "sendVideoNote" begin
+        @testset "successful sendVideoNote" begin
+            responses = Dict("sendVideoNote" => Dict(
+                "message_id" => 126,
+                "video_note" => Dict("file_id" => "video_note_1")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendVideoNote(tg; chat_id = 123, video_note = "video_note_file")
+            @test result["message_id"] == 126
+        end
+    end
+
+    @testset "sendMediaGroup" begin
+        @testset "successful sendMediaGroup" begin
+            responses = Dict("sendMediaGroup" => [
+                Dict("message_id" => 127),
+                Dict("message_id" => 128)
+            ])
+            tg = MockClient("test_token"; responses = responses)
+            result = sendMediaGroup(tg; chat_id = 123, media = [Dict("type" => "photo", "media" => "photo1")])
+            @test length(result) == 2
+        end
+    end
+
+    @testset "sendLocation" begin
+        @testset "successful sendLocation" begin
+            responses = Dict("sendLocation" => Dict(
+                "message_id" => 129,
+                "location" => Dict("latitude" => 37.7749, "longitude" => -122.4194)
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendLocation(tg; chat_id = 123, latitude = 37.7749, longitude = -122.4194)
+            @test result["message_id"] == 129
+        end
+    end
+
+    @testset "sendVenue" begin
+        @testset "successful sendVenue" begin
+            responses = Dict("sendVenue" => Dict(
+                "message_id" => 130,
+                "venue" => Dict("title" => "Venue")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendVenue(tg; chat_id = 123, latitude = 37.7749, longitude = -122.4194, title = "Venue", address = "Address")
+            @test result["message_id"] == 130
+        end
+    end
+
+    @testset "sendContact" begin
+        @testset "successful sendContact" begin
+            responses = Dict("sendContact" => Dict(
+                "message_id" => 131,
+                "contact" => Dict("phone_number" => "+1234567890")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendContact(tg; chat_id = 123, phone_number = "+1234567890", first_name = "John")
+            @test result["message_id"] == 131
+        end
+    end
+end
+
+# RF-066: Additional modifier tests
+@testset "Additional Modifier Tests" begin
+    @testset "sendMessage with parse_mode" begin
+        @testset "successful sendMessage with Markdown" begin
+            responses = Dict("sendMessage" => Dict("message_id" => 132))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendMessage(tg; chat_id = 123, text = "*bold* _italic_", parse_mode = "Markdown")
+            @test result["message_id"] == 132
+        end
+    end
+
+    @testset "sendMessage with reply_markup" begin
+        @testset "successful sendMessage with inline keyboard" begin
+            responses = Dict("sendMessage" => Dict("message_id" => 133))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendMessage(tg; chat_id = 123, text = "Text", reply_markup = Dict("inline_keyboard" => [[Dict("text" => "Button", "callback_data" => "data")]]))
+            @test result["message_id"] == 133
+        end
+    end
+
+    @testset "sendMessage with reply_parameters" begin
+        @testset "successful sendMessage replying to message" begin
+            responses = Dict("sendMessage" => Dict("message_id" => 134))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendMessage(tg; chat_id = 123, text = "Reply", reply_parameters = Dict("message_id" => 100))
+            @test result["message_id"] == 134
+        end
+    end
+end
+
 end # module
