@@ -31,6 +31,11 @@ include("api_versions/v80.jl")
 include("api_versions/v81.jl")
 include("api_versions/v82.jl")
 include("api_versions/v83.jl")
+include("api_versions/v90.jl")
+include("api_versions/v91.jl")
+include("api_versions/v92.jl")
+include("api_versions/v93.jl")
+include("api_versions/v94.jl")
 using .V70
 using .V72
 using .V73
@@ -38,6 +43,10 @@ using .V74_75
 using .V76_77
 using .V80
 using .V82
+using .V90
+using .V91
+using .V93
+using .V94
 
 include("logging.jl")
 include("bot.jl")
