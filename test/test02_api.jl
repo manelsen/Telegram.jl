@@ -592,4 +592,81 @@ end
     end
 end
 
+# RF-040: API 8.2 methods
+@testset "API 8.2 Methods" begin
+    @testset "verifyUser" begin
+        @testset "successful verifyUser" begin
+            responses = Dict("verifyUser" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = verifyUser(tg; user_id = 123456)
+            @test result == true
+        end
+
+        @testset "verifyUser with organization" begin
+            responses = Dict("verifyUser" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = verifyUser(tg; user_id = 123456, organization_id = "org_123")
+            @test result == true
+        end
+
+        @testset "verifyUser with invalid user" begin
+            responses = Dict("verifyUser" => error_response(400, "Bad Request: user not found"))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError verifyUser(tg; user_id = 999999)
+        end
+    end
+
+    @testset "verifyChat" begin
+        @testset "successful verifyChat" begin
+            responses = Dict("verifyChat" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = verifyChat(tg; chat_id = 123)
+            @test result == true
+        end
+
+        @testset "verifyChat with organization" begin
+            responses = Dict("verifyChat" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = verifyChat(tg; chat_id = 123, organization_id = "org_123")
+            @test result == true
+        end
+
+        @testset "verifyChat with invalid chat" begin
+            responses = Dict("verifyChat" => error_response(400, "Bad Request: chat not found"))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError verifyChat(tg; chat_id = 999999)
+        end
+    end
+
+    @testset "removeUserVerification" begin
+        @testset "successful removeUserVerification" begin
+            responses = Dict("removeUserVerification" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = removeUserVerification(tg; user_id = 123456)
+            @test result == true
+        end
+
+        @testset "removeUserVerification with invalid user" begin
+            responses = Dict("removeUserVerification" => error_response(400, "Bad Request: user not verified"))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError removeUserVerification(tg; user_id = 123456)
+        end
+    end
+
+    @testset "removeChatVerification" begin
+        @testset "successful removeChatVerification" begin
+            responses = Dict("removeChatVerification" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = removeChatVerification(tg; chat_id = 123)
+            @test result == true
+        end
+
+        @testset "removeChatVerification with invalid chat" begin
+            responses = Dict("removeChatVerification" => error_response(400, "Bad Request: chat not verified"))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError removeChatVerification(tg; chat_id = 123)
+        end
+    end
+end
+
 end # module
