@@ -1121,4 +1121,108 @@ end
     end
 end
 
+# RF-046: Chat settings and message editing
+@testset "Chat Settings and Message Editing" begin
+    @testset "setChatTitle" begin
+        @testset "successful setChatTitle" begin
+            responses = Dict("setChatTitle" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setChatTitle(tg; chat_id = 123, title = "New Title")
+            @test result == true
+        end
+    end
+
+    @testset "setChatDescription" begin
+        @testset "successful setChatDescription" begin
+            responses = Dict("setChatDescription" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setChatDescription(tg; chat_id = 123, description = "New description")
+            @test result == true
+        end
+    end
+
+    @testset "editMessageText" begin
+        @testset "successful editMessageText" begin
+            responses = Dict("editMessageText" => Dict(
+                "message_id" => 123,
+                "text" => "Updated text"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageText(tg; chat_id = 123, message_id = 123, text = "Updated text")
+            @test result["text"] == "Updated text"
+        end
+
+        @testset "editMessageText inline" begin
+            responses = Dict("editMessageText" => Dict(
+                "message_id" => 123,
+                "text" => "Updated inline"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageText(tg; inline_message_id = "inline_123", text = "Updated inline")
+            @test result["text"] == "Updated inline"
+        end
+    end
+
+    @testset "editMessageCaption" begin
+        @testset "successful editMessageCaption" begin
+            responses = Dict("editMessageCaption" => Dict(
+                "message_id" => 123,
+                "caption" => "Updated caption"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageCaption(tg; chat_id = 123, message_id = 123, caption = "Updated caption")
+            @test result["caption"] == "Updated caption"
+        end
+    end
+
+    @testset "editMessageReplyMarkup" begin
+        @testset "successful editMessageReplyMarkup" begin
+            responses = Dict("editMessageReplyMarkup" => Dict(
+                "message_id" => 123,
+                "reply_markup" => Dict("inline_keyboard" => [])
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageReplyMarkup(tg; chat_id = 123, message_id = 123, reply_markup = Dict())
+            @test result["message_id"] == 123
+        end
+    end
+
+    @testset "deleteMessage" begin
+        @testset "successful deleteMessage" begin
+            responses = Dict("deleteMessage" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteMessage(tg; chat_id = 123, message_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "stopPoll" begin
+        @testset "successful stopPoll" begin
+            responses = Dict("stopPoll" => Dict(
+                "message_id" => 123,
+                "poll" => Dict("id" => "poll_123", "is_closed" => true)
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = stopPoll(tg; chat_id = 123, message_id = 123)
+            @test result["poll"]["is_closed"] == true
+        end
+    end
+
+    @testset "sendChatAction" begin
+        @testset "successful sendChatAction typing" begin
+            responses = Dict("sendChatAction" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = sendChatAction(tg; chat_id = 123, action = "typing")
+            @test result == true
+        end
+
+        @testset "sendChatAction upload_photo" begin
+            responses = Dict("sendChatAction" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = sendChatAction(tg; chat_id = 123, action = "upload_photo")
+            @test result == true
+        end
+    end
+end
+
 end # module
