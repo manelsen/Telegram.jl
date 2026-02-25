@@ -1023,4 +1023,102 @@ end
     end
 end
 
+# RF-045: Member and forum methods
+@testset "Member and Forum Methods" begin
+    @testset "banChatMember" begin
+        @testset "successful banChatMember" begin
+            responses = Dict("banChatMember" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = banChatMember(tg; chat_id = 123, user_id = 456)
+            @test result == true
+        end
+
+        @testset "banChatMember with until_date" begin
+            responses = Dict("banChatMember" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = banChatMember(tg; chat_id = 123, user_id = 456, until_date = 1700000000)
+            @test result == true
+        end
+    end
+
+    @testset "unbanChatMember" begin
+        @testset "successful unbanChatMember" begin
+            responses = Dict("unbanChatMember" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = unbanChatMember(tg; chat_id = 123, user_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "restrictChatMember" begin
+        @testset "successful restrictChatMember" begin
+            responses = Dict("restrictChatMember" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = restrictChatMember(tg; chat_id = 123, user_id = 456, permissions = Dict())
+            @test result == true
+        end
+    end
+
+    @testset "promoteChatMember" begin
+        @testset "successful promoteChatMember" begin
+            responses = Dict("promoteChatMember" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = promoteChatMember(tg; chat_id = 123, user_id = 456, can_post_messages = true)
+            @test result == true
+        end
+    end
+
+    @testset "setChatAdministratorCustomTitle" begin
+        @testset "successful setChatAdministratorCustomTitle" begin
+            responses = Dict("setChatAdministratorCustomTitle" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setChatAdministratorCustomTitle(tg; chat_id = 123, user_id = 456, custom_title = "Moderator")
+            @test result == true
+        end
+    end
+
+    @testset "pinChatMessage" begin
+        @testset "successful pinChatMessage" begin
+            responses = Dict("pinChatMessage" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = pinChatMessage(tg; chat_id = 123, message_id = 456)
+            @test result == true
+        end
+
+        @testset "pinChatMessage with disable_notification" begin
+            responses = Dict("pinChatMessage" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = pinChatMessage(tg; chat_id = 123, message_id = 456, disable_notification = true)
+            @test result == true
+        end
+    end
+
+    @testset "unpinChatMessage" begin
+        @testset "successful unpinChatMessage" begin
+            responses = Dict("unpinChatMessage" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = unpinChatMessage(tg; chat_id = 123, message_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "unpinAllChatMessages" begin
+        @testset "successful unpinAllChatMessages" begin
+            responses = Dict("unpinAllChatMessages" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = unpinAllChatMessages(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+
+    @testset "leaveChat" begin
+        @testset "successful leaveChat" begin
+            responses = Dict("leaveChat" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = leaveChat(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+end
+
 end # module
