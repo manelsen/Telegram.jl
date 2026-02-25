@@ -873,4 +873,154 @@ end
     end
 end
 
+# RF-043: Chat management methods
+@testset "Chat Management Methods" begin
+    @testset "getChat" begin
+        @testset "successful getChat" begin
+            responses = Dict("getChat" => Dict(
+                "id" => 123,
+                "type" => "private",
+                "first_name" => "John",
+                "last_name" => "Doe"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getChat(tg; chat_id = 123)
+            @test result["id"] == 123
+            @test result["type"] == "private"
+        end
+    end
+
+    @testset "getChatAdministrators" begin
+        @testset "successful getChatAdministrators" begin
+            responses = Dict("getChatAdministrators" => [
+                Dict("user" => Dict("id" => 1, "first_name" => "Admin"), "status" => "creator")
+            ])
+            tg = MockClient("test_token"; responses = responses)
+            result = getChatAdministrators(tg; chat_id = 123)
+            @test length(result) == 1
+            @test result[1]["status"] == "creator"
+        end
+    end
+
+    @testset "getChatMemberCount" begin
+        @testset "successful getChatMemberCount" begin
+            responses = Dict("getChatMemberCount" => 100)
+            tg = MockClient("test_token"; responses = responses)
+            result = getChatMemberCount(tg; chat_id = 123)
+            @test result == 100
+        end
+    end
+
+    @testset "getChatMember" begin
+        @testset "successful getChatMember" begin
+            responses = Dict("getChatMember" => Dict(
+                "user" => Dict("id" => 123, "first_name" => "User"),
+                "status" => "member"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getChatMember(tg; chat_id = 123, user_id = 123)
+            @test result["status"] == "member"
+        end
+    end
+
+    @testset "exportChatInviteLink" begin
+        @testset "successful exportChatInviteLink" begin
+            responses = Dict("exportChatInviteLink" => "https://t.me/+abc123")
+            tg = MockClient("test_token"; responses = responses)
+            result = exportChatInviteLink(tg; chat_id = 123)
+            @test result == "https://t.me/+abc123"
+        end
+    end
+
+    @testset "createChatInviteLink" begin
+        @testset "successful createChatInviteLink" begin
+            responses = Dict("createChatInviteLink" => Dict(
+                "invite_link" => "https://t.me/+xyz789",
+                "creator" => Dict("id" => 1),
+                "creates_join_request" => false
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = createChatInviteLink(tg; chat_id = 123)
+            @test result["invite_link"] == "https://t.me/+xyz789"
+        end
+    end
+
+    @testset "editChatInviteLink" begin
+        @testset "successful editChatInviteLink" begin
+            responses = Dict("editChatInviteLink" => Dict(
+                "invite_link" => "https://t.me/+xyz789",
+                "name" => "Updated"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editChatInviteLink(tg; chat_id = 123, invite_link = "https://t.me/+xyz789", name = "Updated")
+            @test result["name"] == "Updated"
+        end
+    end
+
+    @testset "revokeChatInviteLink" begin
+        @testset "successful revokeChatInviteLink" begin
+            responses = Dict("revokeChatInviteLink" => Dict(
+                "invite_link" => "https://t.me/+revoked",
+                "is_revoked" => true
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = revokeChatInviteLink(tg; chat_id = 123, invite_link = "https://t.me/+revoked")
+            @test result["is_revoked"] == true
+        end
+    end
+end
+
+# RF-044: Query methods
+@testset "Query Methods" begin
+    @testset "answerCallbackQuery" begin
+        @testset "successful answerCallbackQuery" begin
+            responses = Dict("answerCallbackQuery" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = answerCallbackQuery(tg; callback_query_id = "query_123")
+            @test result == true
+        end
+
+        @testset "answerCallbackQuery with show_alert" begin
+            responses = Dict("answerCallbackQuery" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = answerCallbackQuery(tg; callback_query_id = "query_123", show_alert = true, text = "Alert!")
+            @test result == true
+        end
+    end
+
+    @testset "answerInlineQuery" begin
+        @testset "successful answerInlineQuery" begin
+            responses = Dict("answerInlineQuery" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = answerInlineQuery(tg; inline_query_id = "inline_123", results = [])
+            @test result == true
+        end
+    end
+
+    @testset "answerPreCheckoutQuery" begin
+        @testset "successful answerPreCheckoutQuery" begin
+            responses = Dict("answerPreCheckoutQuery" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = answerPreCheckoutQuery(tg; pre_checkout_query_id = "pre_123", ok = true)
+            @test result == true
+        end
+
+        @testset "answerPreCheckoutQuery with error" begin
+            responses = Dict("answerPreCheckoutQuery" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = answerPreCheckoutQuery(tg; pre_checkout_query_id = "pre_123", ok = false, error_message = "Out of stock")
+            @test result == true
+        end
+    end
+
+    @testset "answerShippingQuery" begin
+        @testset "successful answerShippingQuery" begin
+            responses = Dict("answerShippingQuery" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = answerShippingQuery(tg; shipping_query_id = "ship_123", ok = true, shipping_options = [])
+            @test result == true
+        end
+    end
+end
+
 end # module
