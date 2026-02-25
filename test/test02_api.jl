@@ -279,22 +279,105 @@ end
     end
 end
 
-# RF-037 to RF-041: API 7.4-8.0 methods
-@testset "API 7.4-8.0 Methods" begin
-    methods_7_4 = [
-        :refundStarPayment, :getStarTransactions,
-        :sendPaidMedia,
-        :createChatSubscriptionInviteLink, :editChatSubscriptionInviteLink,
-        :setUserEmojiStatus,
-        :verifyUser, :verifyChat, :removeUserVerification, :removeChatVerification,
-        :editUserStarSubscription,
-        :savePreparedInlineMessage,
-        :getAvailableGifts, :sendGift, :giftPremiumSubscription
-    ]
+# RF-037 to RF-038: API 7.4-7.5 methods
+@testset "API 7.4-7.5 Methods" begin
+    @testset "refundStarPayment" begin
+        @testset "successful refundStarPayment" begin
+            responses = Dict("refundStarPayment" => Dict(
+                "ok" => true,
+                "result" => true
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = refundStarPayment(tg; user_id = 123456, telegram_payment_charge_id = "charge_123")
+            @test result == true
+        end
 
-    for method in methods_7_4
-        @testset "$method exists" begin
-            @test isdefined(API, method)
+        @testset "refundStarPayment with invalid charge_id" begin
+            responses = Dict("refundStarPayment" => Dict(
+                "ok" => false,
+                "error_code" => 400,
+                "description" => "Bad Request: payment not found"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError refundStarPayment(tg; user_id = 123456, telegram_payment_charge_id = "invalid_charge")
+        end
+
+        @testset "refundStarPayment with non-existent user" begin
+            responses = Dict("refundStarPayment" => Dict(
+                "ok" => false,
+                "error_code" => 400,
+                "description" => "Bad Request: user not found"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError refundStarPayment(tg; user_id = 999999, telegram_payment_charge_id = "charge_123")
+        end
+
+        @testset "refundStarPayment rate limiting" begin
+            responses = Dict("refundStarPayment" => Dict(
+                "ok" => false,
+                "error_code" => 429,
+                "description" => "Too Many Requests: retry after 10 seconds"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError refundStarPayment(tg; user_id = 123456, telegram_payment_charge_id = "charge_123")
+        end
+    end
+
+    @testset "getStarTransactions" begin
+        @testset "successful getStarTransactions" begin
+            responses = Dict("getStarTransactions" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "transactions" => [
+                        Dict(
+                            "id" => "txn_1",
+                            "amount" => 100,
+                            "from_user" => Dict("id" => 123, "is_bot" => false, "first_name" => "Test User"),
+                            "date" => Int(floor(time()))
+                        )
+                    ]
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getStarTransactions(tg)
+            @test length(result["transactions"]) == 1
+            @test result["transactions"][1]["id"] == "txn_1"
+        end
+
+        @testset "getStarTransactions with pagination" begin
+            responses = Dict("getStarTransactions" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "transactions" => Any[]
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getStarTransactions(tg; offset = 10, limit = 50)
+            @test result["transactions"] isa Vector
+        end
+
+        @testset "getStarTransactions with limit" begin
+            responses = Dict("getStarTransactions" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "transactions" => Vector{Dict{String, Any}}()
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getStarTransactions(tg; limit = 50)
+            @test result["transactions"] isa Vector
+        end
+
+        @testset "getStarTransactions empty result" begin
+            responses = Dict("getStarTransactions" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "transactions" => Any[]
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getStarTransactions(tg)
+            @test result["transactions"] isa Vector
         end
     end
 end
