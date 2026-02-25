@@ -132,13 +132,149 @@ end
 
 # RF-036: API 7.2 methods
 @testset "API 7.2 Methods" begin
-    methods_7_2 = [
-        :getBusinessConnection
-    ]
+    @testset "getBusinessConnection" begin
+        @testset "successful getBusinessConnection" begin
+            responses = Dict("getBusinessConnection" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "id" => "connection_id_1",
+                    "user_id" => 123456,
+                    "user_chat_id" => 789,
+                    "date" => Int(floor(time())),
+                    "can_reply" => true,
+                    "can_write" => true
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getBusinessConnection(tg; business_connection_id = "connection_id_1")
+            @test result["id"] == "connection_id_1"
+            @test result["user_id"] == 123456
+            @test result["can_reply"] == true
+        end
 
-    for method in methods_7_2
-        @testset "$method exists" begin
-            @test isdefined(API, method)
+        @testset "getBusinessConnection with invalid business_connection_id" begin
+            responses = Dict("getBusinessConnection" => Dict(
+                "ok" => false,
+                "error_code" => 400,
+                "description" => "Bad Request: connection not found"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError getBusinessConnection(tg; business_connection_id = "invalid_id")
+        end
+    end
+end
+
+# RF-004: API 7.3 methods
+@testset "API 7.3 Methods" begin
+    @testset "editMessageLiveLocation" begin
+        @testset "successful editMessageLiveLocation" begin
+            responses = Dict("editMessageLiveLocation" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "message_id" => 456,
+                    "date" => Int(floor(time())),
+                    "chat" => Dict(
+                        "id" => 123,
+                        "type" => "private"
+                    ),
+                    "location" => Dict(
+                        "latitude" => 37.7749,
+                        "longitude" => -122.4194
+                    )
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = 37.7749, longitude = -122.4194)
+            @test result["message_id"] == 456
+            @test result["location"]["latitude"] == 37.7749
+        end
+
+        @testset "editMessageLiveLocation with infinite live_period (0x7FFFFFFF)" begin
+            responses = Dict("editMessageLiveLocation" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "message_id" => 456,
+                    "date" => Int(floor(time())),
+                    "chat" => Dict("id" => 123, "type" => "private"),
+                    "location" => Dict("latitude" => 37.7749, "longitude" => -122.4194)
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = 37.7749, longitude = -122.4194, live_period = 0x7FFFFFFF)
+            @test result["message_id"] == 456
+        end
+
+        @testset "editMessageLiveLocation with invalid message_id" begin
+            responses = Dict("editMessageLiveLocation" => Dict(
+                "ok" => false,
+                "error_code" => 400,
+                "description" => "Bad Request: message not found"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError editMessageLiveLocation(tg; chat_id = 123, message_id = 999, latitude = 37.7749, longitude = -122.4194)
+        end
+
+        @testset "editMessageLiveLocation with negative coordinates" begin
+            responses = Dict("editMessageLiveLocation" => Dict(
+                "ok" => false,
+                "error_code" => 400,
+                "description" => "Bad Request: coordinates are invalid"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = -91.0, longitude = -122.4194)
+        end
+
+        @testset "editMessageLiveLocation with heading and proximity_alert_radius" begin
+            responses = Dict("editMessageLiveLocation" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "message_id" => 456,
+                    "date" => Int(floor(time())),
+                    "chat" => Dict("id" => 123, "type" => "private"),
+                    "location" => Dict("latitude" => 37.7749, "longitude" => -122.4194)
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = 37.7749, longitude = -122.4194, heading = 90, proximity_alert_radius = 100)
+            @test result["message_id"] == 456
+        end
+    end
+end
+
+        @testset "editMessageLiveLocation with infinite live_period (0x7FFFFFFF)" begin
+            responses = Dict("editMessageLiveLocation" => Dict(
+                "message_id" => 456,
+                "date" => Int(floor(time())),
+                "chat" => Dict("id" => 123, "type" => "private"),
+                "location" => Dict("latitude" => 37.7749, "longitude" => -122.4194)
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = 37.7749, longitude = -122.4194, live_period = 0x7FFFFFFF)
+            @test result["message_id"] == 456
+        end
+
+        @testset "editMessageLiveLocation with invalid message_id" begin
+            responses = Dict("editMessageLiveLocation" => error_response(400, "Bad Request: message not found"))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError editMessageLiveLocation(tg; chat_id = 123, message_id = 999, latitude = 37.7749, longitude = -122.4194)
+        end
+
+        @testset "editMessageLiveLocation with negative coordinates" begin
+            responses = Dict("editMessageLiveLocation" => error_response(400, "Bad Request: coordinates are invalid"))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = -91.0, longitude = -122.4194)
+        end
+
+        @testset "editMessageLiveLocation with heading and proximity_alert_radius" begin
+            responses = Dict("editMessageLiveLocation" => Dict(
+                "message_id" => 456,
+                "date" => Int(floor(time())),
+                "chat" => Dict("id" => 123, "type" => "private"),
+                "location" => Dict("latitude" => 37.7749, "longitude" => -122.4194)
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = 37.7749, longitude = -122.4194, heading = 90, proximity_alert_radius = 100)
+            @test result["message_id"] == 456
         end
     end
 end

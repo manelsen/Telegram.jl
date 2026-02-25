@@ -1189,7 +1189,7 @@ Use this method to edit animation, audio, document, photo, or video messages. If
 (:editMessageLiveLocation, """
 	editMessageLiveLocation([tg::TelegramClient]; kwargs...)
 
-Use this method to edit live location messages. A location can be edited until its live_period expires or editing is explicitly disabled by a call to [`stopMessageLiveLocation`](@ref). On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
+Use this method to edit live location messages. A live location can be edited indefinitely, pass 0x7FFFFFFF as live_period. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
 
 # Required arguments
 - `latitude`: (Float number) Latitude of new location
@@ -1199,6 +1199,7 @@ Use this method to edit live location messages. A location can be edited until i
 - `chat_id`: (Integer or String) Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Required if inline_message_id is not specified. Identifier of the message to edit
 - `inline_message_id`: (String) Required if chat_id and message_id are not specified. Identifier of the inline message
+- `live_period`: (Integer) New period in seconds during which the location can be updated, 0x7FFFFFFF for live locations that can be edited indefinitely.
 - `horizontal_accuracy`: (Float number) The radius of uncertainty for the location, measured in meters; 0-1500
 - `heading`: (Integer) Direction in which the user is moving, in degrees. Must be between 1 and 360 if specified.
 - `proximity_alert_radius`: (Integer) The maximum distance for proximity alerts about approaching another chat member, in meters. Must be between 1 and 100000 if specified.
@@ -1696,8 +1697,8 @@ Use this method to get the list of boosts added to a chat by a user. Requires ad
 
 Use this method to get information about the connection of the bot with a business account. Returns BusinessConnection object on success.
 
-# Optional arguments
-- `connection_id`: (String) Unique identifier of the business connection
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
 
 [Function documentation source](https://core.telegram.org/bots/api#getbusinessconnection)
 """),
