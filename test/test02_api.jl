@@ -1225,4 +1225,46 @@ end
     end
 end
 
+# RF-047: File and game methods
+@testset "File and Game Methods" begin
+    @testset "getFile" begin
+        @testset "successful getFile" begin
+            responses = Dict("getFile" => Dict(
+                "file_id" => "file_123",
+                "file_unique_id" => "unique_123",
+                "file_size" => 1000,
+                "file_path" => "documents/file.pdf"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getFile(tg; file_id = "file_123")
+            @test result["file_id"] == "file_123"
+            @test result["file_size"] == 1000
+        end
+    end
+
+    @testset "getUserProfilePhotos" begin
+        @testset "successful getUserProfilePhotos" begin
+            responses = Dict("getUserProfilePhotos" => Dict(
+                "total_count" => 2,
+                "photos" => [[Dict("file_id" => "photo_1")]]
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getUserProfilePhotos(tg; user_id = 123)
+            @test result["total_count"] == 2
+        end
+    end
+
+    @testset "getGameHighScores" begin
+        @testset "successful getGameHighScores" begin
+            responses = Dict("getGameHighScores" => [
+                Dict("position" => 1, "score" => 100, "user" => Dict("id" => 123))
+            ])
+            tg = MockClient("test_token"; responses = responses)
+            result = getGameHighScores(tg; user_id = 123, game_message_id = 456)
+            @test length(result) == 1
+            @test result[1]["score"] == 100
+        end
+    end
+end
+
 end # module
