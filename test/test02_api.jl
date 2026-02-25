@@ -2033,4 +2033,401 @@ end
     end
 end
 
+# RF-067: API 8.0 Star Subscription methods
+@testset "API 8.0 Star Subscription Methods" begin
+    @testset "editUserStarSubscription" begin
+        @testset "successful editUserStarSubscription" begin
+            responses = Dict("editUserStarSubscription" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = editUserStarSubscription(tg; user_id = 123, telegram_payment_charge_id = "charge_123")
+            @test result == true
+        end
+
+        @testset "editUserStarSubscription with error" begin
+            responses = Dict("editUserStarSubscription" => error_response(400, "Subscription not found"))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError editUserStarSubscription(tg; user_id = 999, telegram_payment_charge_id = "invalid")
+        end
+    end
+
+    @testset "savePreparedInlineMessage" begin
+        @testset "successful savePreparedInlineMessage" begin
+            responses = Dict("savePreparedInlineMessage" => Dict(
+                "inline_message_id" => "inline_123"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = savePreparedInlineMessage(tg; user_id = 123, chat_id = 456, message_id = 789, data = "prepared_data")
+            @test result["inline_message_id"] == "inline_123"
+        end
+    end
+end
+
+# RF-068: API 9.0 Business Account methods
+@testset "API 9.0 Business Account Methods" begin
+    @testset "readBusinessMessage" begin
+        @testset "successful readBusinessMessage" begin
+            responses = Dict("readBusinessMessage" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = readBusinessMessage(tg; business_connection_id = "conn_1", chat_id = 123, message_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "deleteBusinessMessages" begin
+        @testset "successful deleteBusinessMessages" begin
+            responses = Dict("deleteBusinessMessages" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteBusinessMessages(tg; business_connection_id = "conn_1", chat_id = 123, message_ids = [1, 2, 3])
+            @test result == true
+        end
+    end
+
+    @testset "setBusinessAccountName" begin
+        @testset "successful setBusinessAccountName" begin
+            responses = Dict("setBusinessAccountName" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setBusinessAccountName(tg; business_connection_id = "conn_1", first_name = "Business", last_name = "Account")
+            @test result == true
+        end
+
+        @testset "setBusinessAccountName with only first_name" begin
+            responses = Dict("setBusinessAccountName" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setBusinessAccountName(tg; business_connection_id = "conn_1", first_name = "Business")
+            @test result == true
+        end
+    end
+
+    @testset "setBusinessAccountUsername" begin
+        @testset "successful setBusinessAccountUsername" begin
+            responses = Dict("setBusinessAccountUsername" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setBusinessAccountUsername(tg; business_connection_id = "conn_1", username = "businessbot")
+            @test result == true
+        end
+
+        @testset "setBusinessAccountUsername to remove" begin
+            responses = Dict("setBusinessAccountUsername" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setBusinessAccountUsername(tg; business_connection_id = "conn_1", username = "")
+            @test result == true
+        end
+    end
+
+    @testset "setBusinessAccountBio" begin
+        @testset "successful setBusinessAccountBio" begin
+            responses = Dict("setBusinessAccountBio" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setBusinessAccountBio(tg; business_connection_id = "conn_1", bio = "Welcome to our business!")
+            @test result == true
+        end
+
+        @testset "setBusinessAccountBio with empty bio" begin
+            responses = Dict("setBusinessAccountBio" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setBusinessAccountBio(tg; business_connection_id = "conn_1", bio = "")
+            @test result == true
+        end
+    end
+
+    @testset "setBusinessAccountProfilePhoto" begin
+        @testset "successful setBusinessAccountProfilePhoto" begin
+            responses = Dict("setBusinessAccountProfilePhoto" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setBusinessAccountProfilePhoto(tg; business_connection_id = "conn_1", photo = "photo_data")
+            @test result == true
+        end
+    end
+
+    @testset "removeBusinessAccountProfilePhoto" begin
+        @testset "successful removeBusinessAccountProfilePhoto" begin
+            responses = Dict("removeBusinessAccountProfilePhoto" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = removeBusinessAccountProfilePhoto(tg; business_connection_id = "conn_1")
+            @test result == true
+        end
+    end
+
+    @testset "setBusinessAccountGiftSettings" begin
+        @testset "successful setBusinessAccountGiftSettings" begin
+            responses = Dict("setBusinessAccountGiftSettings" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setBusinessAccountGiftSettings(tg; business_connection_id = "conn_1", unlimited_gifts = true)
+            @test result == true
+        end
+    end
+
+    @testset "getBusinessAccountStarBalance" begin
+        @testset "successful getBusinessAccountStarBalance" begin
+            responses = Dict("getBusinessAccountStarBalance" => Dict(
+                "balance" => 500
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getBusinessAccountStarBalance(tg; business_connection_id = "conn_1")
+            @test result["balance"] == 500
+        end
+    end
+
+    @testset "transferBusinessAccountStars" begin
+        @testset "successful transferBusinessAccountStars" begin
+            responses = Dict("transferBusinessAccountStars" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = transferBusinessAccountStars(tg; business_connection_id = "conn_1", star_count = 100)
+            @test result == true
+        end
+    end
+
+    @testset "convertGiftToStars" begin
+        @testset "successful convertGiftToStars" begin
+            responses = Dict("convertGiftToStars" => Dict(
+                "stars" => Dict("amount" => 50)
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = convertGiftToStars(tg; business_connection_id = "conn_1", gift_id = "gift_123")
+            @test result["stars"]["amount"] == 50
+        end
+    end
+
+    @testset "upgradeGift" begin
+        @testset "successful upgradeGift" begin
+            responses = Dict("upgradeGift" => Dict(
+                "unique_gift" => Dict("gift_id" => "upgraded_123")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = upgradeGift(tg; business_connection_id = "conn_1", gift_id = "gift_123", pay_for_upgrade = true)
+            @test result["unique_gift"]["gift_id"] == "upgraded_123"
+        end
+    end
+
+    @testset "transferGift" begin
+        @testset "successful transferGift" begin
+            responses = Dict("transferGift" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = transferGift(tg; business_connection_id = "conn_1", gift_id = "gift_123", new_owner_user_id = 456)
+            @test result == true
+        end
+    end
+end
+
+# RF-069: API 9.1 Checklist and Star Balance methods
+@testset "API 9.1 Checklist and Star Balance Methods" begin
+    @testset "sendChecklist" begin
+        @testset "successful sendChecklist" begin
+            responses = Dict("sendChecklist" => Dict(
+                "message_id" => 200,
+                "checklist" => Dict("tasks" => [])
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendChecklist(tg; business_connection_id = "conn_1", chat_id = 123, checklist = Dict("tasks" => [Dict("text" => "Task 1")]))
+            @test result["message_id"] == 200
+        end
+    end
+
+    @testset "editMessageChecklist" begin
+        @testset "successful editMessageChecklist" begin
+            responses = Dict("editMessageChecklist" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageChecklist(tg; business_connection_id = "conn_1", chat_id = 123, message_id = 200, checklist = Dict("tasks" => [Dict("text" => "Updated Task")]))
+            @test result == true
+        end
+    end
+
+    @testset "getMyStarBalance" begin
+        @testset "successful getMyStarBalance" begin
+            responses = Dict("getMyStarBalance" => Dict(
+                "balance" => 1000
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getMyStarBalance(tg)
+            @test result["balance"] == 1000
+        end
+    end
+end
+
+# RF-070: Additional sticker and game methods
+@testset "Additional Sticker and Game Methods" begin
+    @testset "uploadStickerFile" begin
+        @testset "successful uploadStickerFile" begin
+            responses = Dict("uploadStickerFile" => Dict(
+                "file_id" => "uploaded_file",
+                "file_unique_id" => "unique_123"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = uploadStickerFile(tg; user_id = 123, png_sticker = "sticker_data")
+            @test result["file_id"] == "uploaded_file"
+        end
+    end
+
+    @testset "setStickerKeywords" begin
+        @testset "successful setStickerKeywords" begin
+            responses = Dict("setStickerKeywords" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setStickerKeywords(tg; sticker = "sticker_123", keywords = ["keyword1", "keyword2"])
+            @test result == true
+        end
+
+        @testset "setStickerKeywords with empty" begin
+            responses = Dict("setStickerKeywords" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setStickerKeywords(tg; sticker = "sticker_123", keywords = [])
+            @test result == true
+        end
+    end
+
+    @testset "setStickerMaskPosition" begin
+        @testset "successful setStickerMaskPosition" begin
+            responses = Dict("setStickerMaskPosition" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setStickerMaskPosition(tg; sticker = "sticker_123", mask_position = Dict("point" => "forehead", "scale" => 0.5))
+            @test result == true
+        end
+    end
+
+    @testset "setStickerSetThumbnail" begin
+        @testset "successful setStickerSetThumbnail" begin
+            responses = Dict("setStickerSetThumbnail" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setStickerSetThumbnail(tg; name = "sticker_set", thumbnail = "thumb_data")
+            @test result == true
+        end
+    end
+
+    @testset "setStickerSetTitle" begin
+        @testset "successful setStickerSetTitle" begin
+            responses = Dict("setStickerSetTitle" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setStickerSetTitle(tg; name = "sticker_set", title = "New Title")
+            @test result == true
+        end
+    end
+
+    @testset "setCustomEmojiStickerSetThumbnail" begin
+        @testset "successful setCustomEmojiStickerSetThumbnail" begin
+            responses = Dict("setCustomEmojiStickerSetThumbnail" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setCustomEmojiStickerSetThumbnail(tg; name = "emoji_set", custom_emoji_id = "emoji_123")
+            @test result == true
+        end
+    end
+
+    @testset "replaceStickerInSet" begin
+        @testset "successful replaceStickerInSet" begin
+            responses = Dict("replaceStickerInSet" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = replaceStickerInSet(tg; user_id = 123, old_sticker = "old_sticker", png_sticker = "new_sticker")
+            @test result == true
+        end
+    end
+
+    @testset "setGameScore" begin
+        @testset "successful setGameScore" begin
+            responses = Dict("setGameScore" => Dict(
+                "message_id" => 201,
+                "score" => 100
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = setGameScore(tg; user_id = 123, score = 100, force = true)
+            @test result["score"] == 100
+        end
+    end
+
+    @testset "sendGame" begin
+        @testset "successful sendGame" begin
+            responses = Dict("sendGame" => Dict(
+                "message_id" => 202,
+                "game" => Dict("title" => "Game")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendGame(tg; chat_id = 123, game_short_name = "mygame")
+            @test result["message_id"] == 202
+        end
+    end
+end
+
+# RF-071: Additional forum and description methods
+@testset "Additional Forum and Description Methods" begin
+    @testset "reopenForumTopic" begin
+        @testset "successful reopenForumTopic" begin
+            responses = Dict("reopenForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = reopenForumTopic(tg; chat_id = 123, message_thread_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "reopenGeneralForumTopic" begin
+        @testset "successful reopenGeneralForumTopic" begin
+            responses = Dict("reopenGeneralForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = reopenGeneralForumTopic(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+
+    @testset "getForumTopicIconStickers" begin
+        @testset "successful getForumTopicIconStickers" begin
+            responses = Dict("getForumTopicIconStickers" => [
+                Dict("file_id" => "sticker_1")
+            ])
+            tg = MockClient("test_token"; responses = responses)
+            result = getForumTopicIconStickers(tg)
+            @test length(result) == 1
+        end
+    end
+
+    @testset "getMyShortDescription" begin
+        @testset "successful getMyShortDescription" begin
+            responses = Dict("getMyShortDescription" => Dict(
+                "short_description" => "Bot short description"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getMyShortDescription(tg)
+            @test result["short_description"] == "Bot short description"
+        end
+    end
+
+    @testset "setMyShortDescription" begin
+        @testset "successful setMyShortDescription" begin
+            responses = Dict("setMyShortDescription" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMyShortDescription(tg; short_description = "New short description")
+            @test result == true
+        end
+    end
+
+    @testset "setPassportDataErrors" begin
+        @testset "successful setPassportDataErrors" begin
+            responses = Dict("setPassportDataErrors" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setPassportDataErrors(tg; user_id = 123, errors = [Dict("type" => "security_check", "message" => "Failed")])
+            @test result == true
+        end
+    end
+end
+
+# RF-072: Send sticker method
+@testset "Send Sticker Methods" begin
+    @testset "sendSticker" begin
+        @testset "successful sendSticker" begin
+            responses = Dict("sendSticker" => Dict(
+                "message_id" => 203,
+                "sticker" => Dict("file_id" => "sticker_123")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendSticker(tg; chat_id = 123, sticker = "sticker_file_id")
+            @test result["message_id"] == 203
+        end
+
+        @testset "sendSticker with emoji" begin
+            responses = Dict("sendSticker" => Dict(
+                "message_id" => 204,
+                "sticker" => Dict("file_id" => "sticker_124")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendSticker(tg; chat_id = 123, sticker = "sticker_file_id", emoji = "😀")
+            @test result["message_id"] == 204
+        end
+    end
+end
+
 end # module
