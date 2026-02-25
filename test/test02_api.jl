@@ -1267,4 +1267,264 @@ end
     end
 end
 
+# RF-048: Sticker methods
+@testset "Sticker Methods" begin
+    @testset "getStickerSet" begin
+        @testset "successful getStickerSet" begin
+            responses = Dict("getStickerSet" => Dict(
+                "name" => "test_set",
+                "title" => "Test Sticker Set",
+                "is_animated" => false,
+                "is_video" => false,
+                "stickers" => []
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getStickerSet(tg; name = "test_set")
+            @test result["name"] == "test_set"
+            @test result["title"] == "Test Sticker Set"
+        end
+    end
+
+    @testset "getCustomEmojiStickers" begin
+        @testset "successful getCustomEmojiStickers" begin
+            responses = Dict("getCustomEmojiStickers" => [
+                Dict("file_id" => "sticker_1", "custom_emoji_id" => "emoji_1")
+            ])
+            tg = MockClient("test_token"; responses = responses)
+            result = getCustomEmojiStickers(tg; custom_emoji_ids = ["emoji_1"])
+            @test length(result) == 1
+        end
+    end
+
+    @testset "createNewStickerSet" begin
+        @testset "successful createNewStickerSet" begin
+            responses = Dict("createNewStickerSet" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = createNewStickerSet(tg; user_id = 123, name = "new_set", title = "New Set", png_sticker = "sticker_data", emojis = "😀")
+            @test result == true
+        end
+    end
+
+    @testset "addStickerToSet" begin
+        @testset "successful addStickerToSet" begin
+            responses = Dict("addStickerToSet" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = addStickerToSet(tg; user_id = 123, name = "set", png_sticker = "sticker", emojis = "😀")
+            @test result == true
+        end
+    end
+
+    @testset "setStickerPositionInSet" begin
+        @testset "successful setStickerPositionInSet" begin
+            responses = Dict("setStickerPositionInSet" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setStickerPositionInSet(tg; sticker = "sticker_123", position = 0)
+            @test result == true
+        end
+    end
+
+    @testset "deleteStickerFromSet" begin
+        @testset "successful deleteStickerFromSet" begin
+            responses = Dict("deleteStickerFromSet" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteStickerFromSet(tg; sticker = "sticker_123")
+            @test result == true
+        end
+    end
+
+    @testset "setStickerEmojiList" begin
+        @testset "successful setStickerEmojiList" begin
+            responses = Dict("setStickerEmojiList" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setStickerEmojiList(tg; sticker = "sticker_123", emoji_list = ["😀", "🎉"])
+            @test result == true
+        end
+    end
+
+    @testset "deleteStickerSet" begin
+        @testset "successful deleteStickerSet" begin
+            responses = Dict("deleteStickerSet" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteStickerSet(tg; name = "test_set")
+            @test result == true
+        end
+    end
+end
+
+# RF-049: Inline query and payment methods
+@testset "Inline Query and Payment Methods" begin
+    @testset "answerWebAppQuery" begin
+        @testset "successful answerWebAppQuery" begin
+            responses = Dict("answerWebAppQuery" => Dict(
+                "inline_message_id" => "inline_123"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = answerWebAppQuery(tg; web_app_query_id = "query_123", result = Dict())
+            @test result["inline_message_id"] == "inline_123"
+        end
+    end
+
+    @testset "sendInvoice" begin
+        @testset "successful sendInvoice" begin
+            responses = Dict("sendInvoice" => Dict(
+                "message_id" => 123,
+                "invoice" => Dict("invoice_id" => "invoice_123")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendInvoice(tg; chat_id = 123, title = "Product", description = "Desc", payload = "pay", provider_token = "token", prices = [])
+            @test result["message_id"] == 123
+        end
+    end
+
+    @testset "createInvoiceLink" begin
+        @testset "successful createInvoiceLink" begin
+            responses = Dict("createInvoiceLink" => "https://t.me/invoice/123")
+            tg = MockClient("test_token"; responses = responses)
+            result = createInvoiceLink(tg; title = "Product", description = "Desc", payload = "pay", provider_token = "token", prices = [])
+            @test result == "https://t.me/invoice/123"
+        end
+    end
+end
+
+# RF-050: Forum topic methods
+@testset "Forum Topic Methods" begin
+    @testset "createForumTopic" begin
+        @testset "successful createForumTopic" begin
+            responses = Dict("createForumTopic" => Dict(
+                "message_thread_id" => 123,
+                "name" => "New Topic",
+                "icon_color" => 7322096
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = createForumTopic(tg; chat_id = 123, name = "New Topic")
+            @test result["message_thread_id"] == 123
+        end
+    end
+
+    @testset "editForumTopic" begin
+        @testset "successful editForumTopic" begin
+            responses = Dict("editForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = editForumTopic(tg; chat_id = 123, message_thread_id = 456, name = "Updated Topic")
+            @test result == true
+        end
+    end
+
+    @testset "closeForumTopic" begin
+        @testset "successful closeForumTopic" begin
+            responses = Dict("closeForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = closeForumTopic(tg; chat_id = 123, message_thread_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "deleteForumTopic" begin
+        @testset "successful deleteForumTopic" begin
+            responses = Dict("deleteForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteForumTopic(tg; chat_id = 123, message_thread_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "unpinAllForumTopicMessages" begin
+        @testset "successful unpinAllForumTopicMessages" begin
+            responses = Dict("unpinAllForumTopicMessages" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = unpinAllForumTopicMessages(tg; chat_id = 123, message_thread_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "editGeneralForumTopic" begin
+        @testset "successful editGeneralForumTopic" begin
+            responses = Dict("editGeneralForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = editGeneralForumTopic(tg; chat_id = 123, name = "General Topic")
+            @test result == true
+        end
+    end
+
+    @testset "closeGeneralForumTopic" begin
+        @testset "successful closeGeneralForumTopic" begin
+            responses = Dict("closeGeneralForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = closeGeneralForumTopic(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+
+    @testset "hideGeneralForumTopic" begin
+        @testset "successful hideGeneralForumTopic" begin
+            responses = Dict("hideGeneralForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = hideGeneralForumTopic(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+
+    @testset "unhideGeneralForumTopic" begin
+        @testset "successful unhideGeneralForumTopic" begin
+            responses = Dict("unhideGeneralForumTopic" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = unhideGeneralForumTopic(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+end
+
+# RF-051: Bot commands and menu methods
+@testset "Bot Commands and Menu Methods" begin
+    @testset "setMyCommands" begin
+        @testset "successful setMyCommands" begin
+            responses = Dict("setMyCommands" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMyCommands(tg; commands = [Dict("command" => "start", "description" => "Start")])
+            @test result == true
+        end
+    end
+
+    @testset "getMyCommands" begin
+        @testset "successful getMyCommands" begin
+            responses = Dict("getMyCommands" => [
+                Dict("command" => "start", "description" => "Start the bot")
+            ])
+            tg = MockClient("test_token"; responses = responses)
+            result = getMyCommands(tg)
+            @test length(result) == 1
+            @test result[1]["command"] == "start"
+        end
+    end
+
+    @testset "deleteMyCommands" begin
+        @testset "successful deleteMyCommands" begin
+            responses = Dict("deleteMyCommands" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteMyCommands(tg)
+            @test result == true
+        end
+    end
+
+    @testset "getMyDefaultAdministratorRights" begin
+        @testset "successful getMyDefaultAdministratorRights" begin
+            responses = Dict("getMyDefaultAdministratorRights" => Dict(
+                "can_manage_chat" => true
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getMyDefaultAdministratorRights(tg)
+            @test result["can_manage_chat"] == true
+        end
+    end
+
+    @testset "setMyDefaultAdministratorRights" begin
+        @testset "successful setMyDefaultAdministratorRights" begin
+            responses = Dict("setMyDefaultAdministratorRights" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMyDefaultAdministratorRights(tg; rights = Dict("can_manage_chat" => true))
+            @test result == true
+        end
+    end
+end
+
 end # module
