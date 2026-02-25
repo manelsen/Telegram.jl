@@ -2440,6 +2440,15 @@ end
             @test result == true
         end
     end
+
+    @testset "deleteMessages" begin
+        @testset "successful deleteMessages" begin
+            responses = Dict("deleteMessages" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteMessages(tg; chat_id = 123, message_ids = [1, 2, 3])
+            @test result == true
+        end
+    end
 end
 
 end # module
