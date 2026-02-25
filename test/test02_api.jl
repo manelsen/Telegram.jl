@@ -1527,4 +1527,126 @@ end
     end
 end
 
+# RF-052: Chat photo and sticker set methods
+@testset "Chat Photo and Sticker Set Methods" begin
+    @testset "setChatPhoto" begin
+        @testset "successful setChatPhoto" begin
+            responses = Dict("setChatPhoto" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setChatPhoto(tg; chat_id = 123, photo = "photo_data")
+            @test result == true
+        end
+    end
+
+    @testset "deleteChatPhoto" begin
+        @testset "successful deleteChatPhoto" begin
+            responses = Dict("deleteChatPhoto" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteChatPhoto(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+
+    @testset "setChatStickerSet" begin
+        @testset "successful setChatStickerSet" begin
+            responses = Dict("setChatStickerSet" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setChatStickerSet(tg; chat_id = 123, sticker_set_name = "myset")
+            @test result == true
+        end
+    end
+
+    @testset "deleteChatStickerSet" begin
+        @testset "successful deleteChatStickerSet" begin
+            responses = Dict("deleteChatStickerSet" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteChatStickerSet(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+end
+
+# RF-053: Chat permissions and join methods
+@testset "Chat Permissions and Join Methods" begin
+    @testset "setChatPermissions" begin
+        @testset "successful setChatPermissions" begin
+            responses = Dict("setChatPermissions" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setChatPermissions(tg; chat_id = 123, permissions = Dict())
+            @test result == true
+        end
+    end
+
+    @testset "approveChatJoinRequest" begin
+        @testset "successful approveChatJoinRequest" begin
+            responses = Dict("approveChatJoinRequest" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = approveChatJoinRequest(tg; chat_id = 123, user_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "declineChatJoinRequest" begin
+        @testset "successful declineChatJoinRequest" begin
+            responses = Dict("declineChatJoinRequest" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = declineChatJoinRequest(tg; chat_id = 123, user_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "banChatSenderChat" begin
+        @testset "successful banChatSenderChat" begin
+            responses = Dict("banChatSenderChat" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = banChatSenderChat(tg; chat_id = 123, sender_chat_id = 456)
+            @test result == true
+        end
+    end
+
+    @testset "unbanChatSenderChat" begin
+        @testset "successful unbanChatSenderChat" begin
+            responses = Dict("unbanChatSenderChat" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = unbanChatSenderChat(tg; chat_id = 123, sender_chat_id = 456)
+            @test result == true
+        end
+    end
+end
+
+# RF-054: Chat menu and reaction methods
+@testset "Chat Menu and Reaction Methods" begin
+    @testset "getChatMenuButton" begin
+        @testset "successful getChatMenuButton" begin
+            responses = Dict("getChatMenuButton" => Dict("text" => "Menu"))
+            tg = MockClient("test_token"; responses = responses)
+            result = getChatMenuButton(tg)
+            @test result["text"] == "Menu"
+        end
+    end
+
+    @testset "setChatMenuButton" begin
+        @testset "successful setChatMenuButton" begin
+            responses = Dict("setChatMenuButton" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setChatMenuButton(tg)
+            @test result == true
+        end
+    end
+end
+
+# RF-055: Chat boost and user boost methods
+@testset "Chat Boost and User Boost Methods" begin
+    @testset "getUserChatBoosts" begin
+        @testset "successful getUserChatBoosts" begin
+            responses = Dict("getUserChatBoosts" => Dict(
+                "boosts" => []
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getUserChatBoosts(tg; user_id = 123)
+            @test haskey(result, "boosts")
+        end
+    end
+end
+
 end # module
