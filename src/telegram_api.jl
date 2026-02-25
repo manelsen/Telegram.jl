@@ -8,7 +8,7 @@ Use this method to receive incoming updates using long polling (wiki). Returns a
 - `offset`: (Integer) Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned. An update is considered confirmed as soon as [`getUpdates`](@ref) is called with an offset higher than its update_id. The negative offset can be specified to retrieve updates starting from -offset update from the end of the updates queue. All previous updates will be forgotten.
 - `limit`: (Integer) Limits the number of updates to be retrieved. Values between 1-100 are accepted. Defaults to 100.
 - `timeout`: (Integer) Timeout in seconds for long polling. Defaults to 0, i.e. usual short polling. Should be positive, short polling should be used for testing purposes only.
-- `allowed_updates`: (Array of String) A JSON-serialized list of the update types you want your bot to receive. For example, specify [“message”, “edited_channel_post”, “callback_query”] to only receive updates of these types. See [Update](https://core.telegram.org/bots/api#update) for a complete list of available update types. Specify an empty list to receive all update types except chat_member (default). If not specified, the previous setting will be used.Please note that this parameter doesn't affect updates created before the call to the getUpdates, so unwanted updates may be received for a short period of time.
+- `allowed_updates`: (Array of String) A JSON-serialized list of the update types you want your bot to receive. For example, specify `["message", "edited_channel_post", "callback_query"]` to only receive updates of these types. See [Update](https://core.telegram.org/bots/api#update) for a complete list of available update types. Specify an empty list to receive all update types except chat_member, message_reaction, and message_reaction_count (default). If not specified, the previous setting will be used.Please note that this parameter doesn't affect updates created before the call to getUpdates, so unwanted updates may be received for a short period of time.
 Notes1. This method will not work if an outgoing webhook is set up.2. In order to avoid getting duplicate updates, recalculate offset after each server response.
 
 [Function documentation source](https://core.telegram.org/bots/api#getupdates)
@@ -16,7 +16,7 @@ Notes1. This method will not work if an outgoing webhook is set up.2. In order t
 (:setWebhook, """
 	setWebhook([tg::TelegramClient]; kwargs...)
 
-Use this method to specify a URL and receive incoming updates via an outgoing webhook. Whenever there is an update for the bot, we will send an HTTPS POST request to the specified URL, containing a JSON-serialized [Update](https://core.telegram.org/bots/api#update). In case of an unsuccessful request, we will give up after a reasonable amount of attempts. Returns True on success.
+Use this method to specify a URL and receive incoming updates via an outgoing webhook. Whenever there is an update for the bot, we will send an HTTPS POST request to the specified URL, containing a JSON-serialized [Update](https://core.telegram.org/bots/api#update). In case of an unsuccessful request (a request with response HTTP status code different from `2XY`), we will repeat the request and give up after a reasonable amount of attempts. Returns True on success.
 
 If you'd like to make sure that the webhook was set by you, you can specify secret data in the parameter secret_token. If specified, the request will contain a header “X-Telegram-Bot-Api-Secret-Token” with the secret token as content.
 
@@ -27,7 +27,7 @@ If you'd like to make sure that the webhook was set by you, you can specify secr
 - `certificate`: (InputFile) Upload your public key certificate so that the root certificate in use can be checked. See our self-signed guide for details.
 - `ip_address`: (String) The fixed IP address which will be used to send webhook requests instead of the IP address resolved through DNS
 - `max_connections`: (Integer) The maximum allowed number of simultaneous HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40. Use lower values to limit the load on your bot's server, and higher values to increase your bot's throughput.
-- `allowed_updates`: (Array of String) A JSON-serialized list of the update types you want your bot to receive. For example, specify [“message”, “edited_channel_post”, “callback_query”] to only receive updates of these types. See [Update](https://core.telegram.org/bots/api#update) for a complete list of available update types. Specify an empty list to receive all update types except chat_member (default). If not specified, the previous setting will be used.Please note that this parameter doesn't affect updates created before the call to the setWebhook, so unwanted updates may be received for a short period of time.
+- `allowed_updates`: (Array of String) A JSON-serialized list of the update types you want your bot to receive. For example, specify `["message", "edited_channel_post", "callback_query"]` to only receive updates of these types. See [Update](https://core.telegram.org/bots/api#update) for a complete list of available update types. Specify an empty list to receive all update types except chat_member, message_reaction, and message_reaction_count (default). If not specified, the previous setting will be used.Please note that this parameter doesn't affect updates created before the call to the setWebhook, so unwanted updates may be received for a short period of time.
 - `drop_pending_updates`: (Boolean) Pass True to drop all pending updates
 - `secret_token`: (String) A secret token to be sent in a header “X-Telegram-Bot-Api-Secret-Token” in every webhook request, 1-256 characters. Only characters `A-Z`, `a-z`, `0-9`, `_` and `-` are allowed. The header is useful to ensure that the request comes from a webhook set by you.
 Notes1. You will not be able to receive updates using [`getUpdates`](@ref) for as long as an outgoing webhook is set up.2. To use a self-signed certificate, you need to upload your public key certificate using certificate parameter. Please upload as InputFile, sending a String will not work.3. Ports currently supported for webhooks: 443, 80, 88, 8443.
@@ -84,22 +84,26 @@ Use this method to send text messages. On success, the sent [Message](https://co
 - `text`: (String) Text of the message to be sent, 1-4096 characters after entities parsing
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `parse_mode`: (String) Mode for parsing entities in the message text. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in message text, which can be specified instead of parse_mode
-- `disable_web_page_preview`: (Boolean) Disables link previews for links in this message
+- `link_preview_options`: (LinkPreviewOptions) Link preview generation options for the message
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendmessage)
 """),
 (:forwardMessage, """
 	forwardMessage([tg::TelegramClient]; kwargs...)
 
-Use this method to forward messages of any kind. Service messages can't be forwarded. On success, the sent [Message](https://core.telegram.org/bots/api#message) is returned.
+Use this method to forward messages of any kind. Service messages and messages with protected content can't be forwarded. On success, the sent [Message](https://core.telegram.org/bots/api#message) is returned.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
@@ -107,16 +111,38 @@ Use this method to forward messages of any kind. Service messages can't be forwa
 - `message_id`: (Integer) Message identifier in the chat specified in from_chat_id
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be forwarded; required if the message is forwarded to a direct messages chat
+- `video_start_timestamp`: (Integer) New start timestamp for the forwarded video in the message
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the forwarded message from forwarding and saving
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; only available when forwarding to private chats
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only
 
 [Function documentation source](https://core.telegram.org/bots/api#forwardmessage)
+"""),
+(:forwardMessages, """
+	forwardMessages([tg::TelegramClient]; kwargs...)
+
+Use this method to forward multiple messages of any kind. If some of the specified messages can't be found or forwarded, they are skipped. Service messages and messages with protected content can't be forwarded. Album grouping is kept for forwarded messages. On success, an array of [MessageId](https://core.telegram.org/bots/api#messageid) of the sent messages is returned.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `from_chat_id`: (Integer or String) Unique identifier for the chat where the original messages were sent (or channel username in the format `@channelusername`)
+- `message_ids`: (Array of Integer) A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to forward. The identifiers must be specified in a strictly increasing order.
+
+# Optional arguments
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the messages will be forwarded; required if the messages are forwarded to a direct messages chat
+- `disable_notification`: (Boolean) Sends the messages silently. Users will receive a notification with no sound.
+- `protect_content`: (Boolean) Protects the contents of the forwarded messages from forwarding and saving
+
+[Function documentation source](https://core.telegram.org/bots/api#forwardmessages)
 """),
 (:copyMessage, """
 	copyMessage([tg::TelegramClient]; kwargs...)
 
-Use this method to copy messages of any kind. Service messages and invoice messages can't be copied. A quiz [poll](https://core.telegram.org/bots/api#poll) can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method [`forwardMessage`](@ref), but the copied message doesn't have a link to the original message. Returns the [MessageId](https://core.telegram.org/bots/api#messageid) of the sent message on success.
+Use this method to copy messages of any kind. Service messages, paid media messages, giveaway messages, giveaway winners messages, and invoice messages can't be copied. A quiz [poll](https://core.telegram.org/bots/api#poll) can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method [`forwardMessage`](@ref), but the copied message doesn't have a link to the original message. Returns the [MessageId](https://core.telegram.org/bots/api#messageid) of the sent message on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
@@ -124,17 +150,41 @@ Use this method to copy messages of any kind. Service messages and invoice messa
 - `message_id`: (Integer) Message identifier in the chat specified in from_chat_id
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
+- `video_start_timestamp`: (Integer) New start timestamp for the copied video in the message
 - `caption`: (String) New caption for media, 0-1024 characters after entities parsing. If not specified, the original caption is kept
 - `parse_mode`: (String) Mode for parsing entities in the new caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the new caption, which can be specified instead of parse_mode
+- `show_caption_above_media`: (Boolean) Pass True, if the caption must be shown above the message media. Ignored if a new caption isn't specified.
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; only available when copying to private chats
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#copymessage)
+"""),
+(:copyMessages, """
+	copyMessages([tg::TelegramClient]; kwargs...)
+
+Use this method to copy messages of any kind. If some of the specified messages can't be found or copied, they are skipped. Service messages, paid media messages, giveaway messages, giveaway winners messages, and invoice messages can't be copied. A quiz [poll](https://core.telegram.org/bots/api#poll) can be copied only if the value of the field correct_option_id is known to the bot. The method is analogous to the method [`forwardMessages`](@ref), but the copied messages don't have a link to the original message. Album grouping is kept for copied messages. On success, an array of [MessageId](https://core.telegram.org/bots/api#messageid) of the sent messages is returned.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `from_chat_id`: (Integer or String) Unique identifier for the chat where the original messages were sent (or channel username in the format `@channelusername`)
+- `message_ids`: (Array of Integer) A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to copy. The identifiers must be specified in a strictly increasing order.
+
+# Optional arguments
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the messages will be sent; required if the messages are sent to a direct messages chat
+- `disable_notification`: (Boolean) Sends the messages silently. Users will receive a notification with no sound.
+- `protect_content`: (Boolean) Protects the contents of the sent messages from forwarding and saving
+- `remove_caption`: (Boolean) Pass True to copy the messages without their captions
+
+[Function documentation source](https://core.telegram.org/bots/api#copymessages)
 """),
 (:sendPhoto, """
 	sendPhoto([tg::TelegramClient]; kwargs...)
@@ -146,16 +196,21 @@ Use this method to send photos. On success, the sent [Message](https://core.tele
 - `photo`: (InputFile or String) Photo to send. Pass a file_id as String to send a photo that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a photo from the Internet, or upload a new photo using multipart/form-data. The photo must be at most 10 MB in size. The photo's width and height must not exceed 10000 in total. Width and height ratio must be at most 20. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `caption`: (String) Photo caption (may also be used when resending photos by file_id), 0-1024 characters after entities parsing
 - `parse_mode`: (String) Mode for parsing entities in the photo caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+- `show_caption_above_media`: (Boolean) Pass True, if the caption must be shown above the message media
 - `has_spoiler`: (Boolean) Pass True if the photo needs to be covered with a spoiler animation
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendphoto)
 """),
@@ -171,7 +226,9 @@ For sending voice messages, use the [`sendVoice`](@ref) method instead.
 - `audio`: (InputFile or String) Audio file to send. Pass a file_id as String to send an audio file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an audio file from the Internet, or upload a new one using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `caption`: (String) Audio caption, 0-1024 characters after entities parsing
 - `parse_mode`: (String) Mode for parsing entities in the audio caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
@@ -181,9 +238,11 @@ For sending voice messages, use the [`sendVoice`](@ref) method instead.
 - `thumbnail`: (InputFile or String) Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass “attach://<file_attach_name>” if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendaudio)
 """),
@@ -197,7 +256,9 @@ Use this method to send general files. On success, the sent [Message](https://co
 - `document`: (InputFile or String) File to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `thumbnail`: (InputFile or String) Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass “attach://<file_attach_name>” if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 - `caption`: (String) Document caption (may also be used when resending documents by file_id), 0-1024 characters after entities parsing
 - `parse_mode`: (String) Mode for parsing entities in the document caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
@@ -205,9 +266,11 @@ Use this method to send general files. On success, the sent [Message](https://co
 - `disable_content_type_detection`: (Boolean) Disables automatic server-side content type detection for files uploaded using multipart/form-data
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#senddocument)
 """),
@@ -221,21 +284,28 @@ Use this method to send video files, Telegram clients support MPEG4 videos (othe
 - `video`: (InputFile or String) Video to send. Pass a file_id as String to send a video that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a video from the Internet, or upload a new video using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `duration`: (Integer) Duration of sent video in seconds
 - `width`: (Integer) Video width
 - `height`: (Integer) Video height
 - `thumbnail`: (InputFile or String) Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass “attach://<file_attach_name>” if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
+- `cover`: (InputFile or String) Cover for the video in the message. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass “attach://<file_attach_name>” to upload a new one using multipart/form-data under <file_attach_name> name. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
+- `start_timestamp`: (Integer) Start timestamp for the video in the message
 - `caption`: (String) Video caption (may also be used when resending videos by file_id), 0-1024 characters after entities parsing
 - `parse_mode`: (String) Mode for parsing entities in the video caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+- `show_caption_above_media`: (Boolean) Pass True, if the caption must be shown above the message media
 - `has_spoiler`: (Boolean) Pass True if the video needs to be covered with a spoiler animation
 - `supports_streaming`: (Boolean) Pass True if the uploaded video is suitable for streaming
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendvideo)
 """),
@@ -249,7 +319,9 @@ Use this method to send animation files (GIF or H.264/MPEG-4 AVC video without s
 - `animation`: (InputFile or String) Animation to send. Pass a file_id as String to send an animation that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an animation from the Internet, or upload a new animation using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `duration`: (Integer) Duration of sent animation in seconds
 - `width`: (Integer) Animation width
 - `height`: (Integer) Animation height
@@ -257,35 +329,42 @@ Use this method to send animation files (GIF or H.264/MPEG-4 AVC video without s
 - `caption`: (String) Animation caption (may also be used when resending animation by file_id), 0-1024 characters after entities parsing
 - `parse_mode`: (String) Mode for parsing entities in the animation caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+- `show_caption_above_media`: (Boolean) Pass True, if the caption must be shown above the message media
 - `has_spoiler`: (Boolean) Pass True if the animation needs to be covered with a spoiler animation
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendanimation)
 """),
 (:sendVoice, """
 	sendVoice([tg::TelegramClient]; kwargs...)
 
-Use this method to send audio files, if you want Telegram clients to display the file as a playable voice message. For this to work, your audio must be in an .OGG file encoded with OPUS (other formats may be sent as [Audio](https://core.telegram.org/bots/api#audio) or [Document](https://core.telegram.org/bots/api#document)). On success, the sent [Message](https://core.telegram.org/bots/api#message) is returned. Bots can currently send voice messages of up to 50 MB in size, this limit may be changed in the future.
+Use this method to send audio files, if you want Telegram clients to display the file as a playable voice message. For this to work, your audio must be in an .OGG file encoded with OPUS, or in .MP3 format, or in .M4A format (other formats may be sent as [Audio](https://core.telegram.org/bots/api#audio) or [Document](https://core.telegram.org/bots/api#document)). On success, the sent [Message](https://core.telegram.org/bots/api#message) is returned. Bots can currently send voice messages of up to 50 MB in size, this limit may be changed in the future.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `voice`: (InputFile or String) Audio file to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `caption`: (String) Voice message caption, 0-1024 characters after entities parsing
 - `parse_mode`: (String) Mode for parsing entities in the voice message caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
 - `duration`: (Integer) Duration of the voice message in seconds
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendvoice)
 """),
@@ -299,33 +378,68 @@ As of v.4.0, Telegram clients support rounded square MPEG4 videos of up to 1 min
 - `video_note`: (InputFile or String) Video note to send. Pass a file_id as String to send a video note that exists on the Telegram servers (recommended) or upload a new video using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files). Sending video notes by a URL is currently unsupported
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `duration`: (Integer) Duration of sent video in seconds
 - `length`: (Integer) Video width and height, i.e. diameter of the video message
 - `thumbnail`: (InputFile or String) Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass “attach://<file_attach_name>” if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files)
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendvideonote)
+"""),
+(:sendPaidMedia, """
+	sendPaidMedia([tg::TelegramClient]; kwargs...)
+
+Use this method to send paid media. On success, the sent [Message](https://core.telegram.org/bots/api#message) is returned.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`). If the chat is a channel, all Telegram Star proceeds from this media will be credited to the chat's balance. Otherwise, they will be credited to the bot's balance.
+- `star_count`: (Integer) The number of Telegram Stars that must be paid to buy access to the media; 1-25000
+- `media`: (Array of InputPaidMedia) A JSON-serialized array describing the media to be sent; up to 10 items
+
+# Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
+- `payload`: (String) Bot-defined paid media payload, 0-128 bytes. This will not be displayed to the user, use it for your internal processes.
+- `caption`: (String) Media caption, 0-1024 characters after entities parsing
+- `parse_mode`: (String) Mode for parsing entities in the media caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
+- `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+- `show_caption_above_media`: (Boolean) Pass True, if the caption must be shown above the message media
+- `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
+- `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
+
+[Function documentation source](https://core.telegram.org/bots/api#sendpaidmedia)
 """),
 (:sendMediaGroup, """
 	sendMediaGroup([tg::TelegramClient]; kwargs...)
 
-Use this method to send a group of photos, videos, documents or audios as an album. Documents and audio files can be only grouped in an album with messages of the same type. On success, an array of [Messages](https://core.telegram.org/bots/api#message) that were sent is returned.
+Use this method to send a group of photos, videos, documents or audios as an album. Documents and audio files can be only grouped in an album with messages of the same type. On success, an array of [Message](https://core.telegram.org/bots/api#message) objects that were sent is returned.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `media`: (Array of InputMediaAudio, InputMediaDocument, InputMediaPhoto and InputMediaVideo) A JSON-serialized array describing messages to be sent, must include 2-10 items
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the messages will be sent; required if the messages are sent to a direct messages chat
 - `disable_notification`: (Boolean) Sends messages silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent messages from forwarding and saving
-- `reply_to_message_id`: (Integer) If the messages are a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
 
 [Function documentation source](https://core.telegram.org/bots/api#sendmediagroup)
 """),
@@ -336,20 +450,24 @@ Use this method to send point on the map. On success, the sent [Message](https:/
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
-- `latitude`: (Float number) Latitude of the location
-- `longitude`: (Float number) Longitude of the location
+- `latitude`: (Float) Latitude of the location
+- `longitude`: (Float) Longitude of the location
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
-- `horizontal_accuracy`: (Float number) The radius of uncertainty for the location, measured in meters; 0-1500
-- `live_period`: (Integer) Period in seconds for which the location will be updated (see Live Locations, should be between 60 and 86400.
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
+- `horizontal_accuracy`: (Float) The radius of uncertainty for the location, measured in meters; 0-1500
+- `live_period`: (Integer) Period in seconds during which the location will be updated (see Live Locations, should be between 60 and 86400, or 0x7FFFFFFF for live locations that can be edited indefinitely.
 - `heading`: (Integer) For live locations, a direction in which the user is moving, in degrees. Must be between 1 and 360 if specified.
 - `proximity_alert_radius`: (Integer) For live locations, a maximum distance for proximity alerts about approaching another chat member, in meters. Must be between 1 and 100000 if specified.
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendlocation)
 """),
@@ -360,22 +478,26 @@ Use this method to send information about a venue. On success, the sent [Message
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
-- `latitude`: (Float number) Latitude of the venue
-- `longitude`: (Float number) Longitude of the venue
+- `latitude`: (Float) Latitude of the venue
+- `longitude`: (Float) Longitude of the venue
 - `title`: (String) Name of the venue
 - `address`: (String) Address of the venue
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `foursquare_id`: (String) Foursquare identifier of the venue
 - `foursquare_type`: (String) Foursquare type of the venue, if known. (For example, “arts_entertainment/default”, “arts_entertainment/aquarium” or “food/icecream”.)
 - `google_place_id`: (String) Google Places identifier of the venue
 - `google_place_type`: (String) Google Places type of the venue. (See supported types.)
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendvenue)
 """),
@@ -390,14 +512,18 @@ Use this method to send phone contacts. On success, the sent [Message](https://c
 - `first_name`: (String) Contact's first name
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `last_name`: (String) Contact's last name
 - `vcard`: (String) Additional data about the contact in the form of a vCard, 0-2048 bytes
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendcontact)
 """),
@@ -407,29 +533,52 @@ Use this method to send phone contacts. On success, the sent [Message](https://c
 Use this method to send a native poll. On success, the sent [Message](https://core.telegram.org/bots/api#message) is returned.
 
 # Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`). Polls can't be sent to channel direct messages chats.
 - `question`: (String) Poll question, 1-300 characters
-- `options`: (Array of String) A JSON-serialized list of answer options, 2-10 strings 1-100 characters each
+- `options`: (Array of InputPollOption) A JSON-serialized list of 2-12 answer options
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `question_parse_mode`: (String) Mode for parsing entities in the question. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details. Currently, only custom emoji entities are allowed
+- `question_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the poll question. It can be specified instead of question_parse_mode
 - `is_anonymous`: (Boolean) True, if the poll needs to be anonymous, defaults to True
 - `type`: (String) Poll type, “quiz” or “regular”, defaults to “regular”
 - `allows_multiple_answers`: (Boolean) True, if the poll allows multiple answers, ignored for polls in quiz mode, defaults to False
 - `correct_option_id`: (Integer) 0-based identifier of the correct answer option, required for polls in quiz mode
 - `explanation`: (String) Text that is shown when a user chooses an incorrect answer or taps on the lamp icon in a quiz-style poll, 0-200 characters with at most 2 line feeds after entities parsing
 - `explanation_parse_mode`: (String) Mode for parsing entities in the explanation. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
-- `explanation_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the poll explanation, which can be specified instead of parse_mode
+- `explanation_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the poll explanation. It can be specified instead of explanation_parse_mode
 - `open_period`: (Integer) Amount of time in seconds the poll will be active after creation, 5-600. Can't be used together with close_date.
 - `close_date`: (Integer) Point in time (Unix timestamp) when the poll will be automatically closed. Must be at least 5 and no more than 600 seconds in the future. Can't be used together with open_period.
 - `is_closed`: (Boolean) Pass True if the poll needs to be immediately closed. This can be useful for poll preview.
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendpoll)
+"""),
+(:sendChecklist, """
+	sendChecklist([tg::TelegramClient]; kwargs...)
+
+Use this method to send a checklist on behalf of a connected business account. On success, the sent [Message](https://core.telegram.org/bots/api#message) is returned.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `chat_id`: (Integer) Unique identifier for the target chat
+- `checklist`: (InputChecklist) A JSON-serialized object for the checklist to send
+
+# Optional arguments
+- `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
+- `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message
+- `reply_parameters`: (ReplyParameters) A JSON-serialized object for description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup) A JSON-serialized object for an inline keyboard
+
+[Function documentation source](https://core.telegram.org/bots/api#sendchecklist)
 """),
 (:sendDice, """
 	sendDice([tg::TelegramClient]; kwargs...)
@@ -440,15 +589,36 @@ Use this method to send an animated emoji that will display a random value. On s
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `emoji`: (String) Emoji on which the dice throw animation is based. Currently, must be one of “”, “”, “”, “”, “”, or “”. Dice can have values 1-6 for “”, “” and “”, values 1-5 for “” and “”, and values 1-64 for “”. Defaults to “”
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#senddice)
+"""),
+(:sendMessageDraft, """
+	sendMessageDraft([tg::TelegramClient]; kwargs...)
+
+Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer) Unique identifier for the target private chat
+- `draft_id`: (Integer) Unique identifier of the message draft; must be non-zero. Changes of drafts with the same identifier are animated
+- `text`: (String) Text of the message to be sent, 1-4096 characters after entities parsing
+
+# Optional arguments
+- `message_thread_id`: (Integer) Unique identifier for the target message thread
+- `parse_mode`: (String) Mode for parsing entities in the message text. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
+- `entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in message text, which can be specified instead of parse_mode
+
+[Function documentation source](https://core.telegram.org/bots/api#sendmessagedraft)
 """),
 (:sendChatAction, """
 	sendChatAction([tg::TelegramClient]; kwargs...)
@@ -460,13 +630,29 @@ Example: The ImageBot needs some time to process a request and upload the image.
 We only recommend using this method when a response from the bot will take a noticeable amount of time to arrive.
 
 # Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`). Channel chats and channel direct messages chats aren't supported.
 - `action`: (String) Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for [text messages](https://core.telegram.org/bots/api#sendmessage), upload_photo for [photos](https://core.telegram.org/bots/api#sendphoto), record_video or upload_video for [videos](https://core.telegram.org/bots/api#sendvideo), record_voice or upload_voice for [voice notes](https://core.telegram.org/bots/api#sendvoice), upload_document for [general files](https://core.telegram.org/bots/api#senddocument), choose_sticker for [stickers](https://core.telegram.org/bots/api#sendsticker), find_location for [location data](https://core.telegram.org/bots/api#sendlocation), record_video_note or upload_video_note for [video notes](https://core.telegram.org/bots/api#sendvideonote).
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread; supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the action will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread or topic of a forum; for supergroups and private chats of bots with forum topic mode enabled only
 
 [Function documentation source](https://core.telegram.org/bots/api#sendchataction)
+"""),
+(:setMessageReaction, """
+	setMessageReaction([tg::TelegramClient]; kwargs...)
+
+Use this method to change the chosen reactions on a message. Service messages of some types can't be reacted to. Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel. Bots can't use paid reactions. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `message_id`: (Integer) Identifier of the target message. If the message belongs to a media group, the reaction is set to the first non-deleted message in the group instead.
+
+# Optional arguments
+- `reaction`: (Array of ReactionType) A JSON-serialized list of reaction types to set on the message. Currently, as non-premium users, bots can set up to one reaction per message. A custom emoji reaction can be used if it is either already present on the message or explicitly allowed by chat administrators. Paid reactions can't be used by bots.
+- `is_big`: (Boolean) Pass True to set the reaction with a big animation
+
+[Function documentation source](https://core.telegram.org/bots/api#setmessagereaction)
 """),
 (:getUserProfilePhotos, """
 	getUserProfilePhotos([tg::TelegramClient]; kwargs...)
@@ -481,6 +667,34 @@ Use this method to get a list of profile pictures for a user. Returns a [UserPro
 - `limit`: (Integer) Limits the number of photos to be retrieved. Values between 1-100 are accepted. Defaults to 100.
 
 [Function documentation source](https://core.telegram.org/bots/api#getuserprofilephotos)
+"""),
+(:getUserProfileAudios, """
+	getUserProfileAudios([tg::TelegramClient]; kwargs...)
+
+Use this method to get a list of profile audios for a user. Returns a [UserProfileAudios](https://core.telegram.org/bots/api#userprofileaudios) object.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `offset`: (Integer) Sequential number of the first audio to be returned. By default, all audios are returned.
+- `limit`: (Integer) Limits the number of audios to be retrieved. Values between 1-100 are accepted. Defaults to 100.
+
+[Function documentation source](https://core.telegram.org/bots/api#getuserprofileaudios)
+"""),
+(:setUserEmojiStatus, """
+	setUserEmojiStatus([tg::TelegramClient]; kwargs...)
+
+Changes the emoji status for a given user that previously allowed the bot to manage their emoji status via the Mini App method requestEmojiStatusAccess. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `emoji_status_custom_emoji_id`: (String) Custom emoji identifier of the emoji status to set. Pass an empty string to remove the status.
+- `emoji_status_expiration_date`: (Integer) Expiration date of the emoji status, if any
+
+[Function documentation source](https://core.telegram.org/bots/api#setuseremojistatus)
 """),
 (:getFile, """
 	getFile([tg::TelegramClient]; kwargs...)
@@ -504,7 +718,7 @@ Use this method to ban a user in a group, a supergroup or a channel. In the case
 - `user_id`: (Integer) Unique identifier of the target user
 
 # Optional arguments
-- `until_date`: (Integer) Date when the user will be unbanned, unix time. If user is banned for more than 366 days or less than 30 seconds from the current time they are considered to be banned forever. Applied for supergroups and channels only.
+- `until_date`: (Integer) Date when the user will be unbanned; Unix time. If user is banned for more than 366 days or less than 30 seconds from the current time they are considered to be banned forever. Applied for supergroups and channels only.
 - `revoke_messages`: (Boolean) Pass True to delete all messages from the chat for the user that is being removed. If False, the user will be able to see messages in the group that were sent before the user was removed. Always True for supergroups and channels.
 
 [Function documentation source](https://core.telegram.org/bots/api#banchatmember)
@@ -535,7 +749,7 @@ Use this method to restrict a user in a supergroup. The bot must be an administr
 
 # Optional arguments
 - `use_independent_chat_permissions`: (Boolean) Pass True if chat permissions are set independently. Otherwise, the can_send_other_messages and can_add_web_page_previews permissions will imply the can_send_messages, can_send_audios, can_send_documents, can_send_photos, can_send_videos, can_send_video_notes, and can_send_voice_notes permissions; the can_send_polls permission will imply the can_send_messages permission.
-- `until_date`: (Integer) Date when restrictions will be lifted for the user, unix time. If user is restricted for more than 366 days or less than 30 seconds from the current time, they are considered to be restricted forever
+- `until_date`: (Integer) Date when restrictions will be lifted for the user; Unix time. If user is restricted for more than 366 days or less than 30 seconds from the current time, they are considered to be restricted forever
 
 [Function documentation source](https://core.telegram.org/bots/api#restrictchatmember)
 """),
@@ -550,17 +764,21 @@ Use this method to promote or demote a user in a supergroup or a channel. The bo
 
 # Optional arguments
 - `is_anonymous`: (Boolean) Pass True if the administrator's presence in the chat is hidden
-- `can_manage_chat`: (Boolean) Pass True if the administrator can access the chat event log, chat statistics, message statistics in channels, see channel members, see anonymous administrators in supergroups and ignore slow mode. Implied by any other administrator privilege
-- `can_post_messages`: (Boolean) Pass True if the administrator can create channel posts, channels only
-- `can_edit_messages`: (Boolean) Pass True if the administrator can edit messages of other users and can pin messages, channels only
+- `can_manage_chat`: (Boolean) Pass True if the administrator can access the chat event log, get boost list, see hidden supergroup and channel members, report spam messages, ignore slow mode, and send messages to the chat without paying Telegram Stars. Implied by any other administrator privilege.
 - `can_delete_messages`: (Boolean) Pass True if the administrator can delete messages of other users
 - `can_manage_video_chats`: (Boolean) Pass True if the administrator can manage video chats
-- `can_restrict_members`: (Boolean) Pass True if the administrator can restrict, ban or unban chat members
+- `can_restrict_members`: (Boolean) Pass True if the administrator can restrict, ban or unban chat members, or access supergroup statistics. For backward compatibility, defaults to True for promotions of channel administrators
 - `can_promote_members`: (Boolean) Pass True if the administrator can add new administrators with a subset of their own privileges or demote administrators that they have promoted, directly or indirectly (promoted by administrators that were appointed by him)
 - `can_change_info`: (Boolean) Pass True if the administrator can change chat title, photo and other settings
 - `can_invite_users`: (Boolean) Pass True if the administrator can invite new users to the chat
-- `can_pin_messages`: (Boolean) Pass True if the administrator can pin messages, supergroups only
-- `can_manage_topics`: (Boolean) Pass True if the user is allowed to create, rename, close, and reopen forum topics, supergroups only
+- `can_post_stories`: (Boolean) Pass True if the administrator can post stories to the chat
+- `can_edit_stories`: (Boolean) Pass True if the administrator can edit stories posted by other users, post stories to the chat page, pin chat stories, and access the chat's story archive
+- `can_delete_stories`: (Boolean) Pass True if the administrator can delete stories posted by other users
+- `can_post_messages`: (Boolean) Pass True if the administrator can post messages in the channel, approve suggested posts, or access channel statistics; for channels only
+- `can_edit_messages`: (Boolean) Pass True if the administrator can edit messages of other users and can pin messages; for channels only
+- `can_pin_messages`: (Boolean) Pass True if the administrator can pin messages; for supergroups only
+- `can_manage_topics`: (Boolean) Pass True if the user is allowed to create, rename, close, and reopen forum topics; for supergroups only
+- `can_manage_direct_messages`: (Boolean) Pass True if the administrator can manage direct messages within the channel and decline suggested posts; for channels only
 
 [Function documentation source](https://core.telegram.org/bots/api#promotechatmember)
 """),
@@ -657,6 +875,35 @@ Use this method to edit a non-primary invite link created by the bot. The bot mu
 
 [Function documentation source](https://core.telegram.org/bots/api#editchatinvitelink)
 """),
+(:createChatSubscriptionInviteLink, """
+	createChatSubscriptionInviteLink([tg::TelegramClient]; kwargs...)
+
+Use this method to create a subscription invite link for a channel chat. The bot must have the can_invite_users administrator rights. The link can be edited using the method [`editChatSubscriptionInviteLink`](@ref) or revoked using the method [`revokeChatInviteLink`](@ref). Returns the new invite link as a [ChatInviteLink](https://core.telegram.org/bots/api#chatinvitelink) object.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target channel chat or username of the target channel (in the format `@channelusername`)
+- `subscription_period`: (Integer) The number of seconds the subscription will be active for before the next payment. Currently, it must always be 2592000 (30 days).
+- `subscription_price`: (Integer) The amount of Telegram Stars a user must pay initially and after each subsequent subscription period to be a member of the chat; 1-10000
+
+# Optional arguments
+- `name`: (String) Invite link name; 0-32 characters
+
+[Function documentation source](https://core.telegram.org/bots/api#createchatsubscriptioninvitelink)
+"""),
+(:editChatSubscriptionInviteLink, """
+	editChatSubscriptionInviteLink([tg::TelegramClient]; kwargs...)
+
+Use this method to edit a subscription invite link created by the bot. The bot must have the can_invite_users administrator rights. Returns the edited invite link as a [ChatInviteLink](https://core.telegram.org/bots/api#chatinvitelink) object.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `invite_link`: (String) The invite link to edit
+
+# Optional arguments
+- `name`: (String) Invite link name; 0-32 characters
+
+[Function documentation source](https://core.telegram.org/bots/api#editchatsubscriptioninvitelink)
+"""),
 (:revokeChatInviteLink, """
 	revokeChatInviteLink([tg::TelegramClient]; kwargs...)
 
@@ -738,13 +985,14 @@ Use this method to change the description of a group, a supergroup or a channel.
 (:pinChatMessage, """
 	pinChatMessage([tg::TelegramClient]; kwargs...)
 
-Use this method to add a message to the list of pinned messages in a chat. If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel. Returns True on success.
+Use this method to add a message to the list of pinned messages in a chat. In private chats and channel direct messages chats, all non-service messages can be pinned. Conversely, the bot must be an administrator with the 'can_pin_messages' right or the 'can_edit_messages' right to pin messages in groups and channels respectively. Returns True on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Identifier of a message to pin
 
 # Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be pinned
 - `disable_notification`: (Boolean) Pass True if it is not necessary to send a notification to all chat members about the new pinned message. Notifications are always disabled in channels and private chats.
 
 [Function documentation source](https://core.telegram.org/bots/api#pinchatmessage)
@@ -752,20 +1000,21 @@ Use this method to add a message to the list of pinned messages in a chat. If th
 (:unpinChatMessage, """
 	unpinChatMessage([tg::TelegramClient]; kwargs...)
 
-Use this method to remove a message from the list of pinned messages in a chat. If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel. Returns True on success.
+Use this method to remove a message from the list of pinned messages in a chat. In private chats and channel direct messages chats, all messages can be unpinned. Conversely, the bot must be an administrator with the 'can_pin_messages' right or the 'can_edit_messages' right to unpin messages in groups and channels respectively. Returns True on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 
 # Optional arguments
-- `message_id`: (Integer) Identifier of a message to unpin. If not specified, the most recent pinned message (by sending date) will be unpinned.
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be unpinned
+- `message_id`: (Integer) Identifier of the message to unpin. Required if business_connection_id is specified. If not specified, the most recent pinned message (by sending date) will be unpinned.
 
 [Function documentation source](https://core.telegram.org/bots/api#unpinchatmessage)
 """),
 (:unpinAllChatMessages, """
 	unpinAllChatMessages([tg::TelegramClient]; kwargs...)
 
-Use this method to clear the list of pinned messages in a chat. If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel. Returns True on success.
+Use this method to clear the list of pinned messages in a chat. In private chats and channel direct messages chats, no additional rights are required to unpin all pinned messages. Conversely, the bot must be an administrator with the 'can_pin_messages' right or the 'can_edit_messages' right to unpin all pinned messages in groups and channels respectively. Returns True on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
@@ -778,14 +1027,14 @@ Use this method to clear the list of pinned messages in a chat. If the chat is n
 Use this method for your bot to leave a group, supergroup or channel. Returns True on success.
 
 # Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup or channel (in the format `@channelusername`)
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup or channel (in the format `@channelusername`). Channel direct messages chats aren't supported; leave the corresponding channel instead.
 
 [Function documentation source](https://core.telegram.org/bots/api#leavechat)
 """),
 (:getChat, """
 	getChat([tg::TelegramClient]; kwargs...)
 
-Use this method to get up to date information about the chat (current name of the user for one-on-one conversations, current username of a user, group or channel, etc.). Returns a [Chat](https://core.telegram.org/bots/api#chat) object on success.
+Use this method to get up-to-date information about the chat. Returns a [ChatFullInfo](https://core.telegram.org/bots/api#chatfullinfo) object on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup or channel (in the format `@channelusername`)
@@ -854,7 +1103,7 @@ Use this method to get custom emoji stickers, which can be used as a forum topic
 (:createForumTopic, """
 	createForumTopic([tg::TelegramClient]; kwargs...)
 
-Use this method to create a topic in a forum supergroup chat. The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights. Returns information about the created topic as a [ForumTopic](https://core.telegram.org/bots/api#forumtopic) object.
+Use this method to create a topic in a forum supergroup chat or a private chat with a user. In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator right. Returns information about the created topic as a [ForumTopic](https://core.telegram.org/bots/api#forumtopic) object.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
@@ -869,7 +1118,7 @@ Use this method to create a topic in a forum supergroup chat. The bot must be an
 (:editForumTopic, """
 	editForumTopic([tg::TelegramClient]; kwargs...)
 
-Use this method to edit name and icon of a topic in a forum supergroup chat. The bot must be an administrator in the chat for this to work and must have can_manage_topics administrator rights, unless it is the creator of the topic. Returns True on success.
+Use this method to edit name and icon of a topic in a forum supergroup chat or a private chat with a user. In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights, unless it is the creator of the topic. Returns True on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
@@ -906,7 +1155,7 @@ Use this method to reopen a closed topic in a forum supergroup chat. The bot mus
 (:deleteForumTopic, """
 	deleteForumTopic([tg::TelegramClient]; kwargs...)
 
-Use this method to delete a forum topic along with all its messages in a forum supergroup chat. The bot must be an administrator in the chat for this to work and must have the can_delete_messages administrator rights. Returns True on success.
+Use this method to delete a forum topic along with all its messages in a forum supergroup chat or a private chat with a user. In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the can_delete_messages administrator rights. Returns True on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
@@ -917,7 +1166,7 @@ Use this method to delete a forum topic along with all its messages in a forum s
 (:unpinAllForumTopicMessages, """
 	unpinAllForumTopicMessages([tg::TelegramClient]; kwargs...)
 
-Use this method to clear the list of pinned messages in a forum topic. The bot must be an administrator in the chat for this to work and must have the can_pin_messages administrator right in the supergroup. Returns True on success.
+Use this method to clear the list of pinned messages in a forum topic in a forum supergroup chat or a private chat with a user. In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the can_pin_messages administrator right in the supergroup. Returns True on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
@@ -928,7 +1177,7 @@ Use this method to clear the list of pinned messages in a forum topic. The bot m
 (:editGeneralForumTopic, """
 	editGeneralForumTopic([tg::TelegramClient]; kwargs...)
 
-Use this method to edit the name of the 'General' topic in a forum supergroup chat. The bot must be an administrator in the chat for this to work and must have can_manage_topics administrator rights. Returns True on success.
+Use this method to edit the name of the 'General' topic in a forum supergroup chat. The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights. Returns True on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
@@ -976,6 +1225,16 @@ Use this method to unhide the 'General' topic in a forum supergroup chat. The bo
 
 [Function documentation source](https://core.telegram.org/bots/api#unhidegeneralforumtopic)
 """),
+(:unpinAllGeneralForumTopicMessages, """
+	unpinAllGeneralForumTopicMessages([tg::TelegramClient]; kwargs...)
+
+Use this method to clear the list of pinned messages in a General forum topic. The bot must be an administrator in the chat for this to work and must have the can_pin_messages administrator right in the supergroup. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
+
+[Function documentation source](https://core.telegram.org/bots/api#unpinallgeneralforumtopicmessages)
+"""),
 (:answerCallbackQuery, """
 	answerCallbackQuery([tg::TelegramClient]; kwargs...)
 
@@ -993,6 +1252,27 @@ Alternatively, the user can be redirected to the specified Game URL. For this op
 - `cache_time`: (Integer) The maximum amount of time in seconds that the result of the callback query may be cached client-side. Telegram apps will support caching starting in version 3.14. Defaults to 0.
 
 [Function documentation source](https://core.telegram.org/bots/api#answercallbackquery)
+"""),
+(:getUserChatBoosts, """
+	getUserChatBoosts([tg::TelegramClient]; kwargs...)
+
+Use this method to get the list of boosts added to a chat by a user. Requires administrator rights in the chat. Returns a [UserChatBoosts](https://core.telegram.org/bots/api#userchatboosts) object.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the chat or username of the channel (in the format `@channelusername`)
+- `user_id`: (Integer) Unique identifier of the target user
+
+[Function documentation source](https://core.telegram.org/bots/api#getuserchatboosts)
+"""),
+(:getBusinessConnection, """
+	getBusinessConnection([tg::TelegramClient]; kwargs...)
+
+Use this method to get information about the connection of the bot with a business account. Returns a [BusinessConnection](https://core.telegram.org/bots/api#businessconnection) object on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+
+[Function documentation source](https://core.telegram.org/bots/api#getbusinessconnection)
 """),
 (:setMyCommands, """
 	setMyCommands([tg::TelegramClient]; kwargs...)
@@ -1093,6 +1373,23 @@ Use this method to get the current bot short description for the given user lang
 
 [Function documentation source](https://core.telegram.org/bots/api#getmyshortdescription)
 """),
+(:setMyProfilePhoto, """
+	setMyProfilePhoto([tg::TelegramClient]; kwargs...)
+
+Changes the profile photo of the bot. Returns True on success.
+
+# Required arguments
+- `photo`: (InputProfilePhoto) The new profile photo to set
+
+[Function documentation source](https://core.telegram.org/bots/api#setmyprofilephoto)
+"""),
+(:removeMyProfilePhoto, """
+	removeMyProfilePhoto([tg::TelegramClient]; kwargs...)
+
+Removes the profile photo of the bot. Requires no parameters. Returns True on success.
+
+[Function documentation source](https://core.telegram.org/bots/api#removemyprofilephoto)
+"""),
 (:setChatMenuButton, """
 	setChatMenuButton([tg::TelegramClient]; kwargs...)
 
@@ -1135,21 +1432,404 @@ Use this method to get the current default administrator rights of the bot. Retu
 
 [Function documentation source](https://core.telegram.org/bots/api#getmydefaultadministratorrights)
 """),
+(:getAvailableGifts, """
+	getAvailableGifts([tg::TelegramClient]; kwargs...)
+
+Returns the list of gifts that can be sent by the bot to users and channel chats. Requires no parameters. Returns a [Gifts](https://core.telegram.org/bots/api#gifts) object.
+
+[Function documentation source](https://core.telegram.org/bots/api#getavailablegifts)
+"""),
+(:sendGift, """
+	sendGift([tg::TelegramClient]; kwargs...)
+
+Sends a gift to the given user or channel chat. The gift can't be converted to Telegram Stars by the receiver. Returns True on success.
+
+# Required arguments
+- `gift_id`: (String) Identifier of the gift; limited gifts can't be sent to channel chats
+
+# Optional arguments
+- `user_id`: (Integer) Required if chat_id is not specified. Unique identifier of the target user who will receive the gift.
+- `chat_id`: (Integer or String) Required if user_id is not specified. Unique identifier for the chat or username of the channel (in the format `@channelusername`) that will receive the gift.
+- `pay_for_upgrade`: (Boolean) Pass True to pay for the gift upgrade from the bot's balance, thereby making the upgrade free for the receiver
+- `text`: (String) Text that will be shown along with the gift; 0-128 characters
+- `text_parse_mode`: (String) Mode for parsing entities in the text. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+- `text_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the gift text. It can be specified instead of text_parse_mode. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+
+[Function documentation source](https://core.telegram.org/bots/api#sendgift)
+"""),
+(:giftPremiumSubscription, """
+	giftPremiumSubscription([tg::TelegramClient]; kwargs...)
+
+Gifts a Telegram Premium subscription to the given user. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user who will receive a Telegram Premium subscription
+- `month_count`: (Integer) Number of months the Telegram Premium subscription will be active for the user; must be one of 3, 6, or 12
+- `star_count`: (Integer) Number of Telegram Stars to pay for the Telegram Premium subscription; must be 1000 for 3 months, 1500 for 6 months, and 2500 for 12 months
+
+# Optional arguments
+- `text`: (String) Text that will be shown along with the service message about the subscription; 0-128 characters
+- `text_parse_mode`: (String) Mode for parsing entities in the text. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+- `text_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the gift text. It can be specified instead of text_parse_mode. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+
+[Function documentation source](https://core.telegram.org/bots/api#giftpremiumsubscription)
+"""),
+(:verifyUser, """
+	verifyUser([tg::TelegramClient]; kwargs...)
+
+Verifies a user on behalf of the organization which is represented by the bot. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `custom_description`: (String) Custom description for the verification; 0-70 characters. Must be empty if the organization isn't allowed to provide a custom verification description.
+
+[Function documentation source](https://core.telegram.org/bots/api#verifyuser)
+"""),
+(:verifyChat, """
+	verifyChat([tg::TelegramClient]; kwargs...)
+
+Verifies a chat on behalf of the organization which is represented by the bot. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`). Channel direct messages chats can't be verified.
+
+# Optional arguments
+- `custom_description`: (String) Custom description for the verification; 0-70 characters. Must be empty if the organization isn't allowed to provide a custom verification description.
+
+[Function documentation source](https://core.telegram.org/bots/api#verifychat)
+"""),
+(:removeUserVerification, """
+	removeUserVerification([tg::TelegramClient]; kwargs...)
+
+Removes verification from a user who is currently verified on behalf of the organization represented by the bot. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+[Function documentation source](https://core.telegram.org/bots/api#removeuserverification)
+"""),
+(:removeChatVerification, """
+	removeChatVerification([tg::TelegramClient]; kwargs...)
+
+Removes verification from a chat that is currently verified on behalf of the organization represented by the bot. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+
+[Function documentation source](https://core.telegram.org/bots/api#removechatverification)
+"""),
+(:readBusinessMessage, """
+	readBusinessMessage([tg::TelegramClient]; kwargs...)
+
+Marks incoming message as read on behalf of a business account. Requires the can_read_messages business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which to read the message
+- `chat_id`: (Integer) Unique identifier of the chat in which the message was received. The chat must have been active in the last 24 hours.
+- `message_id`: (Integer) Unique identifier of the message to mark as read
+
+[Function documentation source](https://core.telegram.org/bots/api#readbusinessmessage)
+"""),
+(:deleteBusinessMessages, """
+	deleteBusinessMessages([tg::TelegramClient]; kwargs...)
+
+Delete messages on behalf of a business account. Requires the can_delete_sent_messages business bot right to delete messages sent by the bot itself, or the can_delete_all_messages business bot right to delete any message. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which to delete the messages
+- `message_ids`: (Array of Integer) A JSON-serialized list of 1-100 identifiers of messages to delete. All messages must be from the same chat. See [`deleteMessage`](@ref) for limitations on which messages can be deleted
+
+[Function documentation source](https://core.telegram.org/bots/api#deletebusinessmessages)
+"""),
+(:setBusinessAccountName, """
+	setBusinessAccountName([tg::TelegramClient]; kwargs...)
+
+Changes the first and last name of a managed business account. Requires the can_change_name business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `first_name`: (String) The new value of the first name for the business account; 1-64 characters
+
+# Optional arguments
+- `last_name`: (String) The new value of the last name for the business account; 0-64 characters
+
+[Function documentation source](https://core.telegram.org/bots/api#setbusinessaccountname)
+"""),
+(:setBusinessAccountUsername, """
+	setBusinessAccountUsername([tg::TelegramClient]; kwargs...)
+
+Changes the username of a managed business account. Requires the can_change_username business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+
+# Optional arguments
+- `username`: (String) The new value of the username for the business account; 0-32 characters
+
+[Function documentation source](https://core.telegram.org/bots/api#setbusinessaccountusername)
+"""),
+(:setBusinessAccountBio, """
+	setBusinessAccountBio([tg::TelegramClient]; kwargs...)
+
+Changes the bio of a managed business account. Requires the can_change_bio business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+
+# Optional arguments
+- `bio`: (String) The new value of the bio for the business account; 0-140 characters
+
+[Function documentation source](https://core.telegram.org/bots/api#setbusinessaccountbio)
+"""),
+(:setBusinessAccountProfilePhoto, """
+	setBusinessAccountProfilePhoto([tg::TelegramClient]; kwargs...)
+
+Changes the profile photo of a managed business account. Requires the can_edit_profile_photo business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `photo`: (InputProfilePhoto) The new profile photo to set
+
+# Optional arguments
+- `is_public`: (Boolean) Pass True to set the public photo, which will be visible even if the main photo is hidden by the business account's privacy settings. An account can have only one public photo.
+
+[Function documentation source](https://core.telegram.org/bots/api#setbusinessaccountprofilephoto)
+"""),
+(:removeBusinessAccountProfilePhoto, """
+	removeBusinessAccountProfilePhoto([tg::TelegramClient]; kwargs...)
+
+Removes the current profile photo of a managed business account. Requires the can_edit_profile_photo business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+
+# Optional arguments
+- `is_public`: (Boolean) Pass True to remove the public photo, which is visible even if the main photo is hidden by the business account's privacy settings. After the main photo is removed, the previous profile photo (if present) becomes the main photo.
+
+[Function documentation source](https://core.telegram.org/bots/api#removebusinessaccountprofilephoto)
+"""),
+(:setBusinessAccountGiftSettings, """
+	setBusinessAccountGiftSettings([tg::TelegramClient]; kwargs...)
+
+Changes the privacy settings pertaining to incoming gifts in a managed business account. Requires the can_change_gift_settings business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `show_gift_button`: (Boolean) Pass True, if a button for sending a gift to the user or by the business account must always be shown in the input field
+- `accepted_gift_types`: (AcceptedGiftTypes) Types of gifts accepted by the business account
+
+[Function documentation source](https://core.telegram.org/bots/api#setbusinessaccountgiftsettings)
+"""),
+(:getBusinessAccountStarBalance, """
+	getBusinessAccountStarBalance([tg::TelegramClient]; kwargs...)
+
+Returns the amount of Telegram Stars owned by a managed business account. Requires the can_view_gifts_and_stars business bot right. Returns [StarAmount](https://core.telegram.org/bots/api#staramount) on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+
+[Function documentation source](https://core.telegram.org/bots/api#getbusinessaccountstarbalance)
+"""),
+(:transferBusinessAccountStars, """
+	transferBusinessAccountStars([tg::TelegramClient]; kwargs...)
+
+Transfers Telegram Stars from the business account balance to the bot's balance. Requires the can_transfer_stars business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `star_count`: (Integer) Number of Telegram Stars to transfer; 1-10000
+
+[Function documentation source](https://core.telegram.org/bots/api#transferbusinessaccountstars)
+"""),
+(:getBusinessAccountGifts, """
+	getBusinessAccountGifts([tg::TelegramClient]; kwargs...)
+
+Returns the gifts received and owned by a managed business account. Requires the can_view_gifts_and_stars business bot right. Returns [OwnedGifts](https://core.telegram.org/bots/api#ownedgifts) on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+
+# Optional arguments
+- `exclude_unsaved`: (Boolean) Pass True to exclude gifts that aren't saved to the account's profile page
+- `exclude_saved`: (Boolean) Pass True to exclude gifts that are saved to the account's profile page
+- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
+- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
+- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
+- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
+- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain and can't be resold or transferred in Telegram
+- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date. Sorting is applied before pagination.
+- `offset`: (String) Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
+- `limit`: (Integer) The maximum number of gifts to be returned; 1-100. Defaults to 100
+
+[Function documentation source](https://core.telegram.org/bots/api#getbusinessaccountgifts)
+"""),
+(:getUserGifts, """
+	getUserGifts([tg::TelegramClient]; kwargs...)
+
+Returns the gifts owned and hosted by a user. Returns [OwnedGifts](https://core.telegram.org/bots/api#ownedgifts) on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the user
+
+# Optional arguments
+- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
+- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
+- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
+- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain and can't be resold or transferred in Telegram
+- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
+- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date. Sorting is applied before pagination.
+- `offset`: (String) Offset of the first entry to return as received from the previous request; use an empty string to get the first chunk of results
+- `limit`: (Integer) The maximum number of gifts to be returned; 1-100. Defaults to 100
+
+[Function documentation source](https://core.telegram.org/bots/api#getusergifts)
+"""),
+(:getChatGifts, """
+	getChatGifts([tg::TelegramClient]; kwargs...)
+
+Returns the gifts owned by a chat. Returns [OwnedGifts](https://core.telegram.org/bots/api#ownedgifts) on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+
+# Optional arguments
+- `exclude_unsaved`: (Boolean) Pass True to exclude gifts that aren't saved to the chat's profile page. Always True, unless the bot has the can_post_messages administrator right in the channel.
+- `exclude_saved`: (Boolean) Pass True to exclude gifts that are saved to the chat's profile page. Always False, unless the bot has the can_post_messages administrator right in the channel.
+- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
+- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
+- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
+- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain and can't be resold or transferred in Telegram
+- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
+- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date. Sorting is applied before pagination.
+- `offset`: (String) Offset of the first entry to return as received from the previous request; use an empty string to get the first chunk of results
+- `limit`: (Integer) The maximum number of gifts to be returned; 1-100. Defaults to 100
+
+[Function documentation source](https://core.telegram.org/bots/api#getchatgifts)
+"""),
+(:convertGiftToStars, """
+	convertGiftToStars([tg::TelegramClient]; kwargs...)
+
+Converts a given regular gift to Telegram Stars. Requires the can_convert_gifts_to_stars business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `owned_gift_id`: (String) Unique identifier of the regular gift that should be converted to Telegram Stars
+
+[Function documentation source](https://core.telegram.org/bots/api#convertgifttostars)
+"""),
+(:upgradeGift, """
+	upgradeGift([tg::TelegramClient]; kwargs...)
+
+Upgrades a given regular gift to a unique gift. Requires the can_transfer_and_upgrade_gifts business bot right. Additionally requires the can_transfer_stars business bot right if the upgrade is paid. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `owned_gift_id`: (String) Unique identifier of the regular gift that should be upgraded to a unique one
+
+# Optional arguments
+- `keep_original_details`: (Boolean) Pass True to keep the original gift text, sender and receiver in the upgraded gift
+- `star_count`: (Integer) The amount of Telegram Stars that will be paid for the upgrade from the business account balance. If `gift.prepaid_upgrade_star_count > 0`, then pass 0, otherwise, the can_transfer_stars business bot right is required and `gift.upgrade_star_count` must be passed.
+
+[Function documentation source](https://core.telegram.org/bots/api#upgradegift)
+"""),
+(:transferGift, """
+	transferGift([tg::TelegramClient]; kwargs...)
+
+Transfers an owned unique gift to another user. Requires the can_transfer_and_upgrade_gifts business bot right. Requires can_transfer_stars business bot right if the transfer is paid. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `owned_gift_id`: (String) Unique identifier of the regular gift that should be transferred
+- `new_owner_chat_id`: (Integer) Unique identifier of the chat which will own the gift. The chat must be active in the last 24 hours.
+
+# Optional arguments
+- `star_count`: (Integer) The amount of Telegram Stars that will be paid for the transfer from the business account balance. If positive, then the can_transfer_stars business bot right is required.
+
+[Function documentation source](https://core.telegram.org/bots/api#transfergift)
+"""),
+(:postStory, """
+	postStory([tg::TelegramClient]; kwargs...)
+
+Posts a story on behalf of a managed business account. Requires the can_manage_stories business bot right. Returns [Story](https://core.telegram.org/bots/api#story) on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `content`: (InputStoryContent) Content of the story
+- `active_period`: (Integer) Period after which the story is moved to the archive, in seconds; must be one of `6 * 3600`, `12 * 3600`, `86400`, or `2 * 86400`
+
+# Optional arguments
+- `caption`: (String) Caption of the story, 0-2048 characters after entities parsing
+- `parse_mode`: (String) Mode for parsing entities in the story caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
+- `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+- `areas`: (Array of StoryArea) A JSON-serialized list of clickable areas to be shown on the story
+- `post_to_chat_page`: (Boolean) Pass True to keep the story accessible after it expires
+- `protect_content`: (Boolean) Pass True if the content of the story must be protected from forwarding and screenshotting
+
+[Function documentation source](https://core.telegram.org/bots/api#poststory)
+"""),
+(:repostStory, """
+	repostStory([tg::TelegramClient]; kwargs...)
+
+Reposts a story on behalf of a business account from another business account. Both business accounts must be managed by the same bot, and the story on the source account must have been posted (or reposted) by the bot. Requires the can_manage_stories business bot right for both business accounts. Returns [Story](https://core.telegram.org/bots/api#story) on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `from_chat_id`: (Integer) Unique identifier of the chat which posted the story that should be reposted
+- `from_story_id`: (Integer) Unique identifier of the story that should be reposted
+- `active_period`: (Integer) Period after which the story is moved to the archive, in seconds; must be one of `6 * 3600`, `12 * 3600`, `86400`, or `2 * 86400`
+
+# Optional arguments
+- `post_to_chat_page`: (Boolean) Pass True to keep the story accessible after it expires
+- `protect_content`: (Boolean) Pass True if the content of the story must be protected from forwarding and screenshotting
+
+[Function documentation source](https://core.telegram.org/bots/api#repoststory)
+"""),
+(:editStory, """
+	editStory([tg::TelegramClient]; kwargs...)
+
+Edits a story previously posted by the bot on behalf of a managed business account. Requires the can_manage_stories business bot right. Returns [Story](https://core.telegram.org/bots/api#story) on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `story_id`: (Integer) Unique identifier of the story to edit
+- `content`: (InputStoryContent) Content of the story
+
+# Optional arguments
+- `caption`: (String) Caption of the story, 0-2048 characters after entities parsing
+- `parse_mode`: (String) Mode for parsing entities in the story caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
+- `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+- `areas`: (Array of StoryArea) A JSON-serialized list of clickable areas to be shown on the story
+
+[Function documentation source](https://core.telegram.org/bots/api#editstory)
+"""),
+(:deleteStory, """
+	deleteStory([tg::TelegramClient]; kwargs...)
+
+Deletes a story previously posted by the bot on behalf of a managed business account. Requires the can_manage_stories business bot right. Returns True on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `story_id`: (Integer) Unique identifier of the story to delete
+
+[Function documentation source](https://core.telegram.org/bots/api#deletestory)
+"""),
 (:editMessageText, """
 	editMessageText([tg::TelegramClient]; kwargs...)
 
-Use this method to edit text and [game](https://core.telegram.org/bots/api#games) messages. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
+Use this method to edit text and [game](https://core.telegram.org/bots/api#games) messages. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
 
 # Required arguments
 - `text`: (String) New text of the message, 1-4096 characters after entities parsing
 
 # Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message to be edited was sent
 - `chat_id`: (Integer or String) Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Required if inline_message_id is not specified. Identifier of the message to edit
 - `inline_message_id`: (String) Required if chat_id and message_id are not specified. Identifier of the inline message
 - `parse_mode`: (String) Mode for parsing entities in the message text. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in message text, which can be specified instead of parse_mode
-- `disable_web_page_preview`: (Boolean) Disables link previews for links in this message
+- `link_preview_options`: (LinkPreviewOptions) Link preview generation options for the message
 - `reply_markup`: (InlineKeyboardMarkup) A JSON-serialized object for an inline keyboard.
 
 [Function documentation source](https://core.telegram.org/bots/api#editmessagetext)
@@ -1157,15 +1837,17 @@ Use this method to edit text and [game](https://core.telegram.org/bots/api#games
 (:editMessageCaption, """
 	editMessageCaption([tg::TelegramClient]; kwargs...)
 
-Use this method to edit captions of messages. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
+Use this method to edit captions of messages. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
 
 # Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message to be edited was sent
 - `chat_id`: (Integer or String) Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Required if inline_message_id is not specified. Identifier of the message to edit
 - `inline_message_id`: (String) Required if chat_id and message_id are not specified. Identifier of the inline message
 - `caption`: (String) New caption of the message, 0-1024 characters after entities parsing
 - `parse_mode`: (String) Mode for parsing entities in the message caption. See [formatting options](https://core.telegram.org/bots/api#formatting-options) for more details.
 - `caption_entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+- `show_caption_above_media`: (Boolean) Pass True, if the caption must be shown above the message media. Supported only for animation, photo and video messages.
 - `reply_markup`: (InlineKeyboardMarkup) A JSON-serialized object for an inline keyboard.
 
 [Function documentation source](https://core.telegram.org/bots/api#editmessagecaption)
@@ -1173,12 +1855,13 @@ Use this method to edit captions of messages. On success, if the edited message 
 (:editMessageMedia, """
 	editMessageMedia([tg::TelegramClient]; kwargs...)
 
-Use this method to edit animation, audio, document, photo, or video messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
+Use this method to edit animation, audio, document, photo, or video messages, or to add media to text messages. If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo or a video otherwise. When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
 
 # Required arguments
 - `media`: (InputMedia) A JSON-serialized object for a new media content of the message
 
 # Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message to be edited was sent
 - `chat_id`: (Integer or String) Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Required if inline_message_id is not specified. Identifier of the message to edit
 - `inline_message_id`: (String) Required if chat_id and message_id are not specified. Identifier of the inline message
@@ -1189,18 +1872,19 @@ Use this method to edit animation, audio, document, photo, or video messages. If
 (:editMessageLiveLocation, """
 	editMessageLiveLocation([tg::TelegramClient]; kwargs...)
 
-Use this method to edit live location messages. A live location can be edited indefinitely, pass 0x7FFFFFFF as live_period. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
+Use this method to edit live location messages. A location can be edited until its live_period expires or editing is explicitly disabled by a call to [`stopMessageLiveLocation`](@ref). On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
 
 # Required arguments
-- `latitude`: (Float number) Latitude of new location
-- `longitude`: (Float number) Longitude of new location
+- `latitude`: (Float) Latitude of new location
+- `longitude`: (Float) Longitude of new location
 
 # Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message to be edited was sent
 - `chat_id`: (Integer or String) Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Required if inline_message_id is not specified. Identifier of the message to edit
 - `inline_message_id`: (String) Required if chat_id and message_id are not specified. Identifier of the inline message
-- `live_period`: (Integer) New period in seconds during which the location can be updated, 0x7FFFFFFF for live locations that can be edited indefinitely.
-- `horizontal_accuracy`: (Float number) The radius of uncertainty for the location, measured in meters; 0-1500
+- `live_period`: (Integer) New period in seconds during which the location can be updated, starting from the message send date. If 0x7FFFFFFF is specified, then the location can be updated forever. Otherwise, the new value must not exceed the current live_period by more than a day, and the live location expiration date must remain within the next 90 days. If not specified, then live_period remains unchanged
+- `horizontal_accuracy`: (Float) The radius of uncertainty for the location, measured in meters; 0-1500
 - `heading`: (Integer) Direction in which the user is moving, in degrees. Must be between 1 and 360 if specified.
 - `proximity_alert_radius`: (Integer) The maximum distance for proximity alerts about approaching another chat member, in meters. Must be between 1 and 100000 if specified.
 - `reply_markup`: (InlineKeyboardMarkup) A JSON-serialized object for a new inline keyboard.
@@ -1213,6 +1897,7 @@ Use this method to edit live location messages. A live location can be edited in
 Use this method to stop updating a live location message before live_period expires. On success, if the message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
 
 # Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message to be edited was sent
 - `chat_id`: (Integer or String) Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Required if inline_message_id is not specified. Identifier of the message with live location to stop
 - `inline_message_id`: (String) Required if chat_id and message_id are not specified. Identifier of the inline message
@@ -1220,12 +1905,29 @@ Use this method to stop updating a live location message before live_period expi
 
 [Function documentation source](https://core.telegram.org/bots/api#stopmessagelivelocation)
 """),
+(:editMessageChecklist, """
+	editMessageChecklist([tg::TelegramClient]; kwargs...)
+
+Use this method to edit a checklist on behalf of a connected business account. On success, the edited [Message](https://core.telegram.org/bots/api#message) is returned.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `chat_id`: (Integer) Unique identifier for the target chat
+- `message_id`: (Integer) Unique identifier for the target message
+- `checklist`: (InputChecklist) A JSON-serialized object for the new checklist
+
+# Optional arguments
+- `reply_markup`: (InlineKeyboardMarkup) A JSON-serialized object for the new inline keyboard for the message
+
+[Function documentation source](https://core.telegram.org/bots/api#editmessagechecklist)
+"""),
 (:editMessageReplyMarkup, """
 	editMessageReplyMarkup([tg::TelegramClient]; kwargs...)
 
-Use this method to edit only the reply markup of messages. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned.
+Use this method to edit only the reply markup of messages. On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api#message) is returned, otherwise True is returned. Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
 
 # Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message to be edited was sent
 - `chat_id`: (Integer or String) Required if inline_message_id is not specified. Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Required if inline_message_id is not specified. Identifier of the message to edit
 - `inline_message_id`: (String) Required if chat_id and message_id are not specified. Identifier of the inline message
@@ -1243,20 +1945,60 @@ Use this method to stop a poll which was sent by the bot. On success, the stoppe
 - `message_id`: (Integer) Identifier of the original message with the poll
 
 # Optional arguments
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message to be edited was sent
 - `reply_markup`: (InlineKeyboardMarkup) A JSON-serialized object for a new message inline keyboard.
 
 [Function documentation source](https://core.telegram.org/bots/api#stoppoll)
 """),
+(:approveSuggestedPost, """
+	approveSuggestedPost([tg::TelegramClient]; kwargs...)
+
+Use this method to approve a suggested post in a direct messages chat. The bot must have the 'can_post_messages' administrator right in the corresponding channel chat. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer) Unique identifier for the target direct messages chat
+- `message_id`: (Integer) Identifier of a suggested post message to approve
+
+# Optional arguments
+- `send_date`: (Integer) Point in time (Unix timestamp) when the post is expected to be published; omit if the date has already been specified when the suggested post was created. If specified, then the date must be not more than 2678400 seconds (30 days) in the future
+
+[Function documentation source](https://core.telegram.org/bots/api#approvesuggestedpost)
+"""),
+(:declineSuggestedPost, """
+	declineSuggestedPost([tg::TelegramClient]; kwargs...)
+
+Use this method to decline a suggested post in a direct messages chat. The bot must have the 'can_manage_direct_messages' administrator right in the corresponding channel chat. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer) Unique identifier for the target direct messages chat
+- `message_id`: (Integer) Identifier of a suggested post message to decline
+
+# Optional arguments
+- `comment`: (String) Comment for the creator of the suggested post; 0-128 characters
+
+[Function documentation source](https://core.telegram.org/bots/api#declinesuggestedpost)
+"""),
 (:deleteMessage, """
 	deleteMessage([tg::TelegramClient]; kwargs...)
 
-Use this method to delete a message, including service messages, with the following limitations:- A message can only be deleted if it was sent less than 48 hours ago.- Service messages about a supergroup, channel, or forum topic creation can't be deleted.- A dice message in a private chat can only be deleted if it was sent more than 24 hours ago.- Bots can delete outgoing messages in private chats, groups, and supergroups.- Bots can delete incoming messages in private chats.- Bots granted can_post_messages permissions can delete outgoing messages in channels.- If the bot is an administrator of a group, it can delete any message there.- If the bot has can_delete_messages permission in a supergroup or a channel, it can delete any message there.Returns True on success.
+Use this method to delete a message, including service messages, with the following limitations:- A message can only be deleted if it was sent less than 48 hours ago.- Service messages about a supergroup, channel, or forum topic creation can't be deleted.- A dice message in a private chat can only be deleted if it was sent more than 24 hours ago.- Bots can delete outgoing messages in private chats, groups, and supergroups.- Bots can delete incoming messages in private chats.- Bots granted can_post_messages permissions can delete outgoing messages in channels.- If the bot is an administrator of a group, it can delete any message there.- If the bot has can_delete_messages administrator right in a supergroup or a channel, it can delete any message there.- If the bot has can_manage_direct_messages administrator right in a channel, it can delete any message in the corresponding direct messages chat.Returns True on success.
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `message_id`: (Integer) Identifier of the message to delete
 
 [Function documentation source](https://core.telegram.org/bots/api#deletemessage)
+"""),
+(:deleteMessages, """
+	deleteMessages([tg::TelegramClient]; kwargs...)
+
+Use this method to delete multiple messages simultaneously. If some of the specified messages can't be found, they are skipped. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `message_ids`: (Array of Integer) A JSON-serialized list of 1-100 identifiers of messages to delete. See [`deleteMessage`](@ref) for limitations on which messages can be deleted
+
+[Function documentation source](https://core.telegram.org/bots/api#deletemessages)
 """),
 (:sendSticker, """
 	sendSticker([tg::TelegramClient]; kwargs...)
@@ -1265,16 +2007,20 @@ Use this method to send static .WEBP, animated .TGS, or video .WEBM stickers. On
 
 # Required arguments
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
-- `sticker`: (InputFile or String) Sticker to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a .WEBP sticker from the Internet, or upload a new .WEBP or .TGS sticker using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files). Video stickers can only be sent by a file_id. Animated stickers can't be sent via an HTTP URL.
+- `sticker`: (InputFile or String) Sticker to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a .WEBP sticker from the Internet, or upload a new .WEBP, .TGS, or .WEBM sticker using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files). Video and animated stickers can't be sent via an HTTP URL.
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
 - `emoji`: (String) Emoji associated with the sticker; only for just uploaded stickers
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
-- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
+- `reply_markup`: (InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove a reply keyboard or to force a reply from the user
 
 [Function documentation source](https://core.telegram.org/bots/api#sendsticker)
 """),
@@ -1294,14 +2040,14 @@ Use this method to get a sticker set. On success, a [StickerSet](https://core.te
 Use this method to get information about custom emoji stickers by their identifiers. Returns an Array of [Sticker](https://core.telegram.org/bots/api#sticker) objects.
 
 # Required arguments
-- `custom_emoji_ids`: (Array of String) List of custom emoji identifiers. At most 200 custom emoji identifiers can be specified.
+- `custom_emoji_ids`: (Array of String) A JSON-serialized list of custom emoji identifiers. At most 200 custom emoji identifiers can be specified.
 
 [Function documentation source](https://core.telegram.org/bots/api#getcustomemojistickers)
 """),
 (:uploadStickerFile, """
 	uploadStickerFile([tg::TelegramClient]; kwargs...)
 
-Use this method to upload a file with a sticker for later use in the [`createNewStickerSet`](@ref) and [`addStickerToSet`](@ref) methods (the file can be used multiple times). Returns the uploaded [File](https://core.telegram.org/bots/api#file) on success.
+Use this method to upload a file with a sticker for later use in the [`createNewStickerSet`](@ref), [`addStickerToSet`](@ref), or [`replaceStickerInSet`](@ref) methods (the file can be used multiple times). Returns the uploaded [File](https://core.telegram.org/bots/api#file) on success.
 
 # Required arguments
 - `user_id`: (Integer) User identifier of sticker file owner
@@ -1320,7 +2066,6 @@ Use this method to create a new sticker set owned by a user. The bot will be abl
 - `name`: (String) Short name of sticker set, to be used in `t.me/addstickers/` URLs (e.g., animals). Can contain only English letters, digits and underscores. Must begin with a letter, can't contain consecutive underscores and must end in `"_by_<bot_username>"`. `<bot_username>` is case insensitive. 1-64 characters.
 - `title`: (String) Sticker set title, 1-64 characters
 - `stickers`: (Array of InputSticker) A JSON-serialized list of 1-50 initial stickers to be added to the sticker set
-- `sticker_format`: (String) Format of stickers in the set, must be one of “static”, “animated”, “video”
 
 # Optional arguments
 - `sticker_type`: (String) Type of stickers in the set, pass “regular”, “mask”, or “custom_emoji”. By default, a regular sticker set is created.
@@ -1331,7 +2076,7 @@ Use this method to create a new sticker set owned by a user. The bot will be abl
 (:addStickerToSet, """
 	addStickerToSet([tg::TelegramClient]; kwargs...)
 
-Use this method to add a new sticker to a set created by the bot. The format of the added sticker must match the format of the other stickers in the set. Emoji sticker sets can have up to 200 stickers. Animated and video sticker sets can have up to 50 stickers. Static sticker sets can have up to 120 stickers. Returns True on success.
+Use this method to add a new sticker to a set created by the bot. Emoji sticker sets can have up to 200 stickers. Other sticker sets can have up to 120 stickers. Returns True on success.
 
 # Required arguments
 - `user_id`: (Integer) User identifier of sticker set owner
@@ -1360,6 +2105,19 @@ Use this method to delete a sticker from a set created by the bot. Returns True 
 - `sticker`: (String) File identifier of the sticker
 
 [Function documentation source](https://core.telegram.org/bots/api#deletestickerfromset)
+"""),
+(:replaceStickerInSet, """
+	replaceStickerInSet([tg::TelegramClient]; kwargs...)
+
+Use this method to replace an existing sticker in a sticker set with a new one. The method is equivalent to calling [`deleteStickerFromSet`](@ref), then [`addStickerToSet`](@ref), then [`setStickerPositionInSet`](@ref). Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) User identifier of the sticker set owner
+- `name`: (String) Sticker set name
+- `old_sticker`: (String) File identifier of the replaced sticker
+- `sticker`: (InputSticker) A JSON-serialized object with information about the added sticker. If exactly the same sticker had already been added to the set, then the set remains unchanged.
+
+[Function documentation source](https://core.telegram.org/bots/api#replacestickerinset)
 """),
 (:setStickerEmojiList, """
 	setStickerEmojiList([tg::TelegramClient]; kwargs...)
@@ -1417,9 +2175,10 @@ Use this method to set the thumbnail of a regular or mask sticker set. The forma
 # Required arguments
 - `name`: (String) Sticker set name
 - `user_id`: (Integer) User identifier of the sticker set owner
+- `format`: (String) Format of the thumbnail, must be one of “static” for a .WEBP or .PNG image, “animated” for a .TGS animation, or “video” for a .WEBM video
 
 # Optional arguments
-- `thumbnail`: (InputFile or String) A .WEBP or .PNG image with the thumbnail, must be up to 128 kilobytes in size and have a width and height of exactly 100px, or a .TGS animation with a thumbnail up to 32 kilobytes in size (see https://core.telegram.org/stickers#animated-sticker-requirements for animated sticker technical requirements), or a WEBM video with the thumbnail up to 32 kilobytes in size; see https://core.telegram.org/stickers#video-sticker-requirements for video sticker technical requirements. Pass a file_id as a String to send a file that already exists on the Telegram servers, pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files). Animated and video sticker set thumbnails can't be uploaded via HTTP URL. If omitted, then the thumbnail is dropped and the first sticker is used as the thumbnail.
+- `thumbnail`: (InputFile or String) A .WEBP or .PNG image with the thumbnail, must be up to 128 kilobytes in size and have a width and height of exactly 100px, or a .TGS animation with a thumbnail up to 32 kilobytes in size (see https://core.telegram.org/stickers#animation-requirements for animated sticker technical requirements), or a .WEBM video with the thumbnail up to 32 kilobytes in size; see https://core.telegram.org/stickers#video-requirements for video sticker technical requirements. Pass a file_id as a String to send a file that already exists on the Telegram servers, pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. [More information on Sending Files »](https://core.telegram.org/bots/api#sending-files). Animated and video sticker set thumbnails can't be uploaded via HTTP URL. If omitted, then the thumbnail is dropped and the first sticker is used as the thumbnail.
 
 [Function documentation source](https://core.telegram.org/bots/api#setstickersetthumbnail)
 """),
@@ -1474,6 +2233,23 @@ Use this method to set the result of an interaction with a Web App and send a co
 
 [Function documentation source](https://core.telegram.org/bots/api#answerwebappquery)
 """),
+(:savePreparedInlineMessage, """
+	savePreparedInlineMessage([tg::TelegramClient]; kwargs...)
+
+Stores a message that can be sent by a user of a Mini App. Returns a [PreparedInlineMessage](https://core.telegram.org/bots/api#preparedinlinemessage) object.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user that can use the prepared message
+- `result`: (InlineQueryResult) A JSON-serialized object describing the message to be sent
+
+# Optional arguments
+- `allow_user_chats`: (Boolean) Pass True if the message can be sent to private chats with users
+- `allow_bot_chats`: (Boolean) Pass True if the message can be sent to private chats with bots
+- `allow_group_chats`: (Boolean) Pass True if the message can be sent to group and supergroup chats
+- `allow_channel_chats`: (Boolean) Pass True if the message can be sent to channel chats
+
+[Function documentation source](https://core.telegram.org/bots/api#savepreparedinlinemessage)
+"""),
 (:sendInvoice, """
 	sendInvoice([tg::TelegramClient]; kwargs...)
 
@@ -1483,14 +2259,15 @@ Use this method to send invoices. On success, the sent [Message](https://core.te
 - `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
 - `title`: (String) Product name, 1-32 characters
 - `description`: (String) Product description, 1-255 characters
-- `payload`: (String) Bot-defined invoice payload, 1-128 bytes. This will not be displayed to the user, use for your internal processes.
-- `provider_token`: (String) Payment provider token, obtained via @BotFather
-- `currency`: (String) Three-letter ISO 4217 currency code, see more on currencies
-- `prices`: (Array of LabeledPrice) Price breakdown, a JSON-serialized list of components (e.g. product price, tax, discount, delivery cost, delivery tax, bonus, etc.)
+- `payload`: (String) Bot-defined invoice payload, 1-128 bytes. This will not be displayed to the user, use it for your internal processes.
+- `currency`: (String) Three-letter ISO 4217 currency code, see more on currencies. Pass “XTR” for payments in Telegram Stars.
+- `prices`: (Array of LabeledPrice) Price breakdown, a JSON-serialized list of components (e.g. product price, tax, discount, delivery cost, delivery tax, bonus, etc.). Must contain exactly one item for payments in Telegram Stars.
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
-- `max_tip_amount`: (Integer) The maximum accepted amount for tips in the smallest units of the currency (integer, not float/double). For example, for a maximum tip of `US\$ 1.45` pass `max_tip_amount = 145`. See the exp parameter in currencies.json, it shows the number of digits past the decimal point for each currency (2 for the majority of currencies). Defaults to 0
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
+- `direct_messages_topic_id`: (Integer) Identifier of the direct messages topic to which the message will be sent; required if the message is sent to a direct messages chat
+- `provider_token`: (String) Payment provider token, obtained via @BotFather. Pass an empty string for payments in Telegram Stars.
+- `max_tip_amount`: (Integer) The maximum accepted amount for tips in the smallest units of the currency (integer, not float/double). For example, for a maximum tip of `US\$ 1.45` pass `max_tip_amount = 145`. See the exp parameter in currencies.json, it shows the number of digits past the decimal point for each currency (2 for the majority of currencies). Defaults to 0. Not supported for payments in Telegram Stars.
 - `suggested_tip_amounts`: (Array of Integer) A JSON-serialized array of suggested amounts of tips in the smallest units of the currency (integer, not float/double). At most 4 suggested tip amounts can be specified. The suggested tip amounts must be positive, passed in a strictly increased order and must not exceed max_tip_amount.
 - `start_parameter`: (String) Unique deep-linking parameter. If left empty, forwarded copies of the sent message will have a Pay button, allowing multiple users to pay directly from the forwarded message, using the same invoice. If non-empty, forwarded copies of the sent message will have a URL button with a deep link to the bot (instead of a Pay button), with the value used as the start parameter
 - `provider_data`: (String) JSON-serialized data about the invoice, which will be shared with the payment provider. A detailed description of required fields should be provided by the payment provider.
@@ -1498,17 +2275,19 @@ Use this method to send invoices. On success, the sent [Message](https://core.te
 - `photo_size`: (Integer) Photo size in bytes
 - `photo_width`: (Integer) Photo width
 - `photo_height`: (Integer) Photo height
-- `need_name`: (Boolean) Pass True if you require the user's full name to complete the order
-- `need_phone_number`: (Boolean) Pass True if you require the user's phone number to complete the order
-- `need_email`: (Boolean) Pass True if you require the user's email address to complete the order
-- `need_shipping_address`: (Boolean) Pass True if you require the user's shipping address to complete the order
-- `send_phone_number_to_provider`: (Boolean) Pass True if the user's phone number should be sent to provider
-- `send_email_to_provider`: (Boolean) Pass True if the user's email address should be sent to provider
-- `is_flexible`: (Boolean) Pass True if the final price depends on the shipping method
+- `need_name`: (Boolean) Pass True if you require the user's full name to complete the order. Ignored for payments in Telegram Stars.
+- `need_phone_number`: (Boolean) Pass True if you require the user's phone number to complete the order. Ignored for payments in Telegram Stars.
+- `need_email`: (Boolean) Pass True if you require the user's email address to complete the order. Ignored for payments in Telegram Stars.
+- `need_shipping_address`: (Boolean) Pass True if you require the user's shipping address to complete the order. Ignored for payments in Telegram Stars.
+- `send_phone_number_to_provider`: (Boolean) Pass True if the user's phone number should be sent to the provider. Ignored for payments in Telegram Stars.
+- `send_email_to_provider`: (Boolean) Pass True if the user's email address should be sent to the provider. Ignored for payments in Telegram Stars.
+- `is_flexible`: (Boolean) Pass True if the final price depends on the shipping method. Ignored for payments in Telegram Stars.
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `suggested_post_parameters`: (SuggestedPostParameters) A JSON-serialized object containing the parameters of the suggested post to send; for direct messages chats only. If the message is sent as a reply to another suggested post, then that suggested post is automatically declined.
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
 - `reply_markup`: (InlineKeyboardMarkup) A JSON-serialized object for an inline keyboard. If empty, one 'Pay `total price`' button will be shown. If not empty, the first button must be a Pay button.
 
 [Function documentation source](https://core.telegram.org/bots/api#sendinvoice)
@@ -1521,26 +2300,28 @@ Use this method to create a link for an invoice. Returns the created invoice lin
 # Required arguments
 - `title`: (String) Product name, 1-32 characters
 - `description`: (String) Product description, 1-255 characters
-- `payload`: (String) Bot-defined invoice payload, 1-128 bytes. This will not be displayed to the user, use for your internal processes.
-- `provider_token`: (String) Payment provider token, obtained via BotFather
-- `currency`: (String) Three-letter ISO 4217 currency code, see more on currencies
-- `prices`: (Array of LabeledPrice) Price breakdown, a JSON-serialized list of components (e.g. product price, tax, discount, delivery cost, delivery tax, bonus, etc.)
+- `payload`: (String) Bot-defined invoice payload, 1-128 bytes. This will not be displayed to the user, use it for your internal processes.
+- `currency`: (String) Three-letter ISO 4217 currency code, see more on currencies. Pass “XTR” for payments in Telegram Stars.
+- `prices`: (Array of LabeledPrice) Price breakdown, a JSON-serialized list of components (e.g. product price, tax, discount, delivery cost, delivery tax, bonus, etc.). Must contain exactly one item for payments in Telegram Stars.
 
 # Optional arguments
-- `max_tip_amount`: (Integer) The maximum accepted amount for tips in the smallest units of the currency (integer, not float/double). For example, for a maximum tip of `US\$ 1.45` pass `max_tip_amount = 145`. See the exp parameter in currencies.json, it shows the number of digits past the decimal point for each currency (2 for the majority of currencies). Defaults to 0
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the link will be created. For payments in Telegram Stars only.
+- `provider_token`: (String) Payment provider token, obtained via @BotFather. Pass an empty string for payments in Telegram Stars.
+- `subscription_period`: (Integer) The number of seconds the subscription will be active for before the next payment. The currency must be set to “XTR” (Telegram Stars) if the parameter is used. Currently, it must always be 2592000 (30 days) if specified. Any number of subscriptions can be active for a given bot at the same time, including multiple concurrent subscriptions from the same user. Subscription price must no exceed 10000 Telegram Stars.
+- `max_tip_amount`: (Integer) The maximum accepted amount for tips in the smallest units of the currency (integer, not float/double). For example, for a maximum tip of `US\$ 1.45` pass `max_tip_amount = 145`. See the exp parameter in currencies.json, it shows the number of digits past the decimal point for each currency (2 for the majority of currencies). Defaults to 0. Not supported for payments in Telegram Stars.
 - `suggested_tip_amounts`: (Array of Integer) A JSON-serialized array of suggested amounts of tips in the smallest units of the currency (integer, not float/double). At most 4 suggested tip amounts can be specified. The suggested tip amounts must be positive, passed in a strictly increased order and must not exceed max_tip_amount.
 - `provider_data`: (String) JSON-serialized data about the invoice, which will be shared with the payment provider. A detailed description of required fields should be provided by the payment provider.
 - `photo_url`: (String) URL of the product photo for the invoice. Can be a photo of the goods or a marketing image for a service.
 - `photo_size`: (Integer) Photo size in bytes
 - `photo_width`: (Integer) Photo width
 - `photo_height`: (Integer) Photo height
-- `need_name`: (Boolean) Pass True if you require the user's full name to complete the order
-- `need_phone_number`: (Boolean) Pass True if you require the user's phone number to complete the order
-- `need_email`: (Boolean) Pass True if you require the user's email address to complete the order
-- `need_shipping_address`: (Boolean) Pass True if you require the user's shipping address to complete the order
-- `send_phone_number_to_provider`: (Boolean) Pass True if the user's phone number should be sent to the provider
-- `send_email_to_provider`: (Boolean) Pass True if the user's email address should be sent to the provider
-- `is_flexible`: (Boolean) Pass True if the final price depends on the shipping method
+- `need_name`: (Boolean) Pass True if you require the user's full name to complete the order. Ignored for payments in Telegram Stars.
+- `need_phone_number`: (Boolean) Pass True if you require the user's phone number to complete the order. Ignored for payments in Telegram Stars.
+- `need_email`: (Boolean) Pass True if you require the user's email address to complete the order. Ignored for payments in Telegram Stars.
+- `need_shipping_address`: (Boolean) Pass True if you require the user's shipping address to complete the order. Ignored for payments in Telegram Stars.
+- `send_phone_number_to_provider`: (Boolean) Pass True if the user's phone number should be sent to the provider. Ignored for payments in Telegram Stars.
+- `send_email_to_provider`: (Boolean) Pass True if the user's email address should be sent to the provider. Ignored for payments in Telegram Stars.
+- `is_flexible`: (Boolean) Pass True if the final price depends on the shipping method. Ignored for payments in Telegram Stars.
 
 [Function documentation source](https://core.telegram.org/bots/api#createinvoicelink)
 """),
@@ -1555,7 +2336,7 @@ If you sent an invoice requesting a shipping address and the parameter is_flexib
 
 # Optional arguments
 - `shipping_options`: (Array of ShippingOption) Required if ok is True. A JSON-serialized array of available shipping options.
-- `error_message`: (String) Required if ok is False. Error message in human readable form that explains why it is impossible to complete the order (e.g. "Sorry, delivery to your desired address is unavailable'). Telegram will display this message to the user.
+- `error_message`: (String) Required if ok is False. Error message in human readable form that explains why it is impossible to complete the order (e.g. “Sorry, delivery to your desired address is unavailable”). Telegram will display this message to the user.
 
 [Function documentation source](https://core.telegram.org/bots/api#answershippingquery)
 """),
@@ -1572,6 +2353,47 @@ Once the user has confirmed their payment and shipping details, the Bot API send
 - `error_message`: (String) Required if ok is False. Error message in human readable form that explains the reason for failure to proceed with the checkout (e.g. "Sorry, somebody just bought the last of our amazing black T-shirts while you were busy filling out your payment details. Please choose a different color or garment!"). Telegram will display this message to the user.
 
 [Function documentation source](https://core.telegram.org/bots/api#answerprecheckoutquery)
+"""),
+(:getMyStarBalance, """
+	getMyStarBalance([tg::TelegramClient]; kwargs...)
+
+A method to get the current Telegram Stars balance of the bot. Requires no parameters. On success, returns a [StarAmount](https://core.telegram.org/bots/api#staramount) object.
+
+[Function documentation source](https://core.telegram.org/bots/api#getmystarbalance)
+"""),
+(:getStarTransactions, """
+	getStarTransactions([tg::TelegramClient]; kwargs...)
+
+Returns the bot's Telegram Star transactions in chronological order. On success, returns a [StarTransactions](https://core.telegram.org/bots/api#startransactions) object.
+
+# Optional arguments
+- `offset`: (Integer) Number of transactions to skip in the response
+- `limit`: (Integer) The maximum number of transactions to be retrieved. Values between 1-100 are accepted. Defaults to 100.
+
+[Function documentation source](https://core.telegram.org/bots/api#getstartransactions)
+"""),
+(:refundStarPayment, """
+	refundStarPayment([tg::TelegramClient]; kwargs...)
+
+Refunds a successful payment in Telegram Stars. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Identifier of the user whose payment will be refunded
+- `telegram_payment_charge_id`: (String) Telegram payment identifier
+
+[Function documentation source](https://core.telegram.org/bots/api#refundstarpayment)
+"""),
+(:editUserStarSubscription, """
+	editUserStarSubscription([tg::TelegramClient]; kwargs...)
+
+Allows the bot to cancel or re-enable extension of a subscription paid in Telegram Stars. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Identifier of the user whose subscription will be edited
+- `telegram_payment_charge_id`: (String) Telegram payment identifier for the subscription
+- `is_canceled`: (Boolean) Pass True to cancel extension of the user subscription; the subscription must be active up to the end of the current subscription period. Pass False to allow the user to re-enable a subscription that was previously canceled by the bot.
+
+[Function documentation source](https://core.telegram.org/bots/api#edituserstarsubscription)
 """),
 (:setPassportDataErrors, """
 	setPassportDataErrors([tg::TelegramClient]; kwargs...)
@@ -1592,15 +2414,17 @@ Use this if the data submitted by the user doesn't satisfy the standards your se
 Use this method to send a game. On success, the sent [Message](https://core.telegram.org/bots/api#message) is returned.
 
 # Required arguments
-- `chat_id`: (Integer) Unique identifier for the target chat
+- `chat_id`: (Integer) Unique identifier for the target chat. Games can't be sent to channel direct messages chats and channel chats.
 - `game_short_name`: (String) Short name of the game, serves as the unique identifier for the game. Set up your games via @BotFather.
 
 # Optional arguments
-- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+- `business_connection_id`: (String) Unique identifier of the business connection on behalf of which the message will be sent
+- `message_thread_id`: (Integer) Unique identifier for the target message thread (topic) of a forum; for forum supergroups and private chats of bots with forum topic mode enabled only
 - `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
 - `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_to_message_id`: (Integer) If the message is a reply, ID of the original message
-- `allow_sending_without_reply`: (Boolean) Pass True if the message should be sent even if the specified replied-to message is not found
+- `allow_paid_broadcast`: (Boolean) Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+- `message_effect_id`: (String) Unique identifier of the message effect to be added to the message; for private chats only
+- `reply_parameters`: (ReplyParameters) Description of the message to reply to
 - `reply_markup`: (InlineKeyboardMarkup) A JSON-serialized object for an inline keyboard. If empty, one 'Play game_title' button will be shown. If not empty, the first button must launch the game.
 
 [Function documentation source](https://core.telegram.org/bots/api#sendgame)
@@ -1640,414 +2464,4 @@ This method will currently return scores for the target user, plus two of their 
 
 [Function documentation source](https://core.telegram.org/bots/api#getgamehighscores)
 """),
-(:setMessageReaction, """
-	setMessageReaction([tg::TelegramClient]; kwargs...)
-
-Use this method to change the chosen reactions on a message. Service messages can't be reacted to. Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel. In chats, only the emoji reactions are available, and in channels, both emoji and custom reactions are available. Returns True on success.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
-- `message_id`: (Integer) Identifier of the target message
-
-# Optional arguments
-- `reaction`: (ReactionType) New reaction to be set on the message. Pass an empty array to remove reactions from a message. If the reaction isn't available or has been removed, the method will succeed but no changes will be made to the message.
-- `is_big`: (Boolean) Pass True to set the reaction with a big animation. Ignored if `reaction` isn't specified.
-
-[Function documentation source](https://core.telegram.org/bots/api#setmessagereaction)
-"""),
-(:getMessageReactions, """
-	getMessageReactions([tg::TelegramClient]; kwargs...)
-
-Use this method to get reactions added for a message and optionally for a chosen reaction and/or user. Returns an Array of Reaction objects.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
-- `message_id`: (Integer) Identifier of the target message
-
-# Optional arguments
-- `reaction`: (ReactionType) If specified, only reactions of this type will be returned. Otherwise, all reactions will be returned.
-- `limit`: (Integer) The maximum number of reactions to be returned. Defaults to 100.
-
-[Function documentation source](https://core.telegram.org/bots/api#getmessagereactions)
-"""),
-(:getChatBoost, """
-	getChatBoost([tg::TelegramClient]; kwargs...)
-
-Use this method to get information about a chat boost. Returns ChatBoost object on success.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
-- `boost_id`: (String) Identifier of the boost
-
-[Function documentation source](https://core.telegram.org/bots/api#getchatboost)
-"""),
-(:getUserChatBoosts, """
-	getUserChatBoosts([tg::TelegramClient]; kwargs...)
-
-Use this method to get the list of boosts added to a chat by a user. Requires administrator rights in the chat. Returns an Array of ChatBoost objects.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
-- `user_id`: (Integer) Unique identifier of the target user
-
-[Function documentation source](https://core.telegram.org/bots/api#getuserchatboosts)
-"""),
-(:getBusinessConnection, """
-	getBusinessConnection([tg::TelegramClient]; kwargs...)
-
-Use this method to get information about the connection of the bot with a business account. Returns BusinessConnection object on success.
-
-# Required arguments
-- `business_connection_id`: (String) Unique identifier of the business connection
-
-[Function documentation source](https://core.telegram.org/bots/api#getbusinessconnection)
-"""),
-(:refundStarPayment, """
-	refundStarPayment([tg::TelegramClient]; kwargs...)
-
-Use this method to refunds a successful payment in Telegram Stars. Returns True on success.
-
-# Required arguments
-- `user_id`: (Integer) Identifier of the user whose payment will be refunded
-- `telegram_payment_charge_id`: (String) Telegram payment identifier
-
-[Function documentation source](https://core.telegram.org/bots/api#refundstarpayment)
-"""),
-(:getStarTransactions, """
-	getStarTransactions([tg::TelegramClient]; kwargs...)
-
-Use this method to get the list of transactions made by the bot. Returns an Array of StarTransaction objects.
-
-# Optional arguments
-- `offset`: (Integer) Number of transactions to skip in the response
-- `limit`: (Integer) The maximum number of transactions to be retrieved. Values between 1-100 are accepted. Defaults to 100.
-
-[Function documentation source](https://core.telegram.org/bots/api#getstartransactions)
-"""),
-(:sendPaidMedia, """
-	sendPaidMedia([tg::TelegramClient]; kwargs...)
-
-Use this method to send paid media to a channel, private chat, or group chat. Returns Message object on success.
-
-# Required arguments
-- `business_connection_id`: (String) Unique identifier of the business connection
-- `star_count`: (Integer) The number of Telegram Stars that must be paid to send the media
-
-# Optional arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup/channel (in the format `@supergroupusername`)
-- `media`: (Array of InputPaidMedia) A JSON-serialized array of descriptions of media to send
-- `show_caption_above_media`: (Boolean) Pass True to show the media caption above the media
-- `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
-- `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
-- `reply_parameters`: (ReplyParameters) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
-
-[Function documentation source](https://core.telegram.org/bots/api#sendpaidmedia)
-"""),
-(:createChatSubscriptionInviteLink, """
-	createChatSubscriptionInviteLink([tg::TelegramClient]; kwargs...)
-
-Use this method to create a subscription invite link for a channel chat. Returns a ChatInviteLink object on success.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
-
-# Optional arguments
-- `subscription_period`: (Integer) The number of seconds the subscription will be valid for before the next payment should be done
-- `subscription_price`: (Integer) The amount of Telegram Stars that the user must pay to join the chat using the link
-- `name`: (String) Invite link name; 0-32 characters
-
-[Function documentation source](https://core.telegram.org/bots/api#createchatsubscriptioninvitelink)
-"""),
-(:editChatSubscriptionInviteLink, """
-	editChatSubscriptionInviteLink([tg::TelegramClient]; kwargs...)
-
-Use this method to edit a subscription invite link for a channel chat. Returns a ChatInviteLink object on success.
-
-# Required arguments
-- `invite_link`: (String) The invite link to edit
-
-# Optional arguments
-- `subscription_period`: (Integer) The number of seconds the subscription will be valid for before the next payment should be done
-- `subscription_price`: (Integer) The amount of Telegram Stars that the user must pay to join the chat using the link
-- `name`: (String) Invite link name; 0-32 characters
-
-[Function documentation source](https://core.telegram.org/bots/api#editchatsubscriptioninvitelink)
-"""),
-(:setUserEmojiStatus, """
-	setUserEmojiStatus([tg::TelegramClient]; kwargs...)
-
-Use this method to change the emoji status for a user. Returns True on success.
-
-# Optional arguments
-- `user_id`: (Integer) Unique identifier of the target user
-- `emoji_status_custom_emoji_id`: (String) Custom emoji identifier of the emoji status
-
-[Function documentation source](https://core.telegram.org/bots/api#setuseremojistatus)
-"""),
-(:verifyUser, """
-	verifyUser([tg::TelegramClient]; kwargs...)
-
-Use this method to verify a user's identity. Returns True on success.
-
-# Required arguments
-- `user_id`: (Integer) Unique identifier of the target user
-
-# Optional arguments
-- `bot_id`: (Integer) Unique identifier of the target bot
-
-[Function documentation source](https://core.telegram.org/bots/api#verifyuser)
-"""),
-(:verifyChat, """
-	verifyChat([tg::TelegramClient]; kwargs...)
-
-Use this method to verify a chat. Returns True on success.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
-
-[Function documentation source](https://core.telegram.org/bots/api#verifychat)
-"""),
-(:removeUserVerification, """
-	removeUserVerification([tg::TelegramClient]; kwargs...)
-
-Use this method to remove verification from a user. Returns True on success.
-
-# Required arguments
-- `user_id`: (Integer) Unique identifier of the target user
-
-[Function documentation source](https://core.telegram.org/bots/api#removeuserverification)
-"""),
-(:removeChatVerification, """
-	removeChatVerification([tg::TelegramClient]; kwargs...)
-
-Use this method to remove verification from a chat. Returns True on success.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
-
-[Function documentation source](https://core.telegram.org/bots/api#removechatverification)
-"""),
-(:editUserStarSubscription, """
-	editUserStarSubscription([tg::TelegramClient]; kwargs...)
-
-Use this method to edit a subscription to a user in Telegram Stars. Returns True on success.
-
-# Required arguments
-- `user_id`: (Integer) Unique identifier of the target user
-
-# Optional arguments
-- `telegram_payment_charge_id`: (String) Telegram payment identifier
-- `is_canceled`: (Boolean) Pass True to cancel the subscription
-
-[Function documentation source](https://core.telegram.org/bots/api#edituserstarsubscription)
-"""),
-(:savePreparedInlineMessage, """
-	savePreparedInlineMessage([tg::TelegramClient]; kwargs...)
-
-Use this method to save a message in the user's Telegram account and get a unique identifier for it. Returns the identifier of the saved message on success.
-
-# Required arguments
-- `user_id`: (Integer) Unique identifier of the target user
-
-# Optional arguments
-- `result_id`: (String) Unique identifier for the result to be used
-- `button`: (InlineKeyboardButton) An inline keyboard button to be attached to the message
-
-[Function documentation source](https://core.telegram.org/bots/api#savepreparedinlinemessage)
-"""),
-(:getAvailableGifts, """
-	getAvailableGifts([tg::TelegramClient]; kwargs...)
-
-Use this method to get the list of available gifts. Returns an Array of Gift objects on success.
-
-# Function documentation source](https://core.telegram.org/bots/api#getavailablegifts)
-"""),
-(:sendGift, """
-	sendGift([tg::TelegramClient]; kwargs...)
-
-Use this method to send a gift to a user. Returns True on success.
-
-# Required arguments
-- `user_id`: (Integer) Unique identifier of the target user
-- `gift_id`: (String) Unique identifier of the gift
-
-# Optional arguments
-- `text`: (String) Text to be sent along with the gift
-- `text_parse_mode`: (String) Mode for parsing entities in the gift message text
-
-[Function documentation source](https://core.telegram.org/bots/api#sendgift)
-"""),
-(:giftPremiumSubscription, """
-	giftPremiumSubscription([tg::TelegramClient]; kwargs...)
-
-Use this method to gift a Telegram Premium subscription to a user. Returns True on success.
-
-# Required arguments
-- `user_id`: (Integer) Unique identifier of the target user
-
-# Optional arguments
-- `star_count`: (Integer) The number of Telegram Stars that the user must pay to get the subscription
-- `business_connection_id`: (String) Unique identifier of the business connection
-
-[Function documentation source](https://core.telegram.org/bots/api#giftpremiumsubscription)
-"""),
-(:getUserProfileAudios, """
-	getUserProfileAudios([tg::TelegramClient]; kwargs...)
-
-Use this method to get a list of profile audios for a user. Returns a UserProfileAudios object.
-
-# Required arguments
-- `user_id`: (Integer) Unique identifier of the target user
-
-# Optional arguments
-- `offset`: (Integer) Sequential number of the first audio to be returned. By default, all audios are returned.
-- `limit`: (Integer) Limits the number of audios to be retrieved. Values between 1-100 are accepted. Defaults to 100.
-
-[Function documentation source](https://core.telegram.org/bots/api#getuserprofileaudios)
-"""),
-(:setMyProfilePhoto, """
-	setMyProfilePhoto([tg::TelegramClient]; kwargs...)
-
-Use this method to set a new profile photo for the bot. Returns True on success.
-
-# Required arguments
-- `photo`: (InputProfilePhoto) The new profile photo to set
-
-[Function documentation source](https://core.telegram.org/bots/api#setmyprofilephoto)
-"""),
-(:removeMyProfilePhoto, """
-	removeMyProfilePhoto([tg::TelegramClient]; kwargs...)
-
-Use this method to remove the profile photo of the bot. Requires no parameters. Returns True on success.
-
-[Function documentation source](https://core.telegram.org/bots/api#removemyprofilephoto)
-"""),
-(:approveSuggestedPost, """
-	approveSuggestedPost([tg::TelegramClient]; kwargs...)
-
-Use this method to approve a suggested post in a direct messages chat. Returns True on success.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target direct messages chat
-- `message_id`: (Integer) Identifier of a suggested post message to approve
-
-# Optional arguments
-- `send_date`: (Integer) Point in time (Unix timestamp) when the post is expected to be published
-
-[Function documentation source](https://core.telegram.org/bots/api#approvesuggestedpost)
-"""),
-(:declineSuggestedPost, """
-	declineSuggestedPost([tg::TelegramClient]; kwargs...)
-
-Use this method to decline a suggested post in a direct messages chat. Returns True on success.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target direct messages chat
-- `message_id`: (Integer) Identifier of a suggested post message to decline
-
-# Optional arguments
-- `comment`: (String) Comment for the creator of the suggested post
-
-[Function documentation source](https://core.telegram.org/bots/api#declinesuggestedpost)
-"""),
-(:getUserGifts, """
-	getUserGifts([tg::TelegramClient]; kwargs...)
-
-Use this method to get a list of gifts owned by a user. Returns a OwnedGifts object on success.
-
-# Required arguments
-- `user_id`: (Integer) Unique identifier of the target user
-
-# Optional arguments
-- `exclude_unsaved`: (Boolean) Pass True to exclude gifts that aren't saved to the account's profile page
-- `exclude_saved`: (Boolean) Pass True to exclude gifts that are saved to the account's profile page
-- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
-- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
-- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
-- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain
-- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
-- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date
-- `offset`: (String) Offset of the first entry to return
-- `limit`: (Integer) The maximum number of gifts to be returned; 1-100
-
-[Function documentation source](https://core.telegram.org/bots/api#getusergifts)
-"""),
-(:getChatGifts, """
-	getChatGifts([tg::TelegramClient]; kwargs...)
-
-Use this method to get a list of gifts owned by a chat. Returns a OwnedGifts object on success.
-
-# Required arguments
-- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel
-
-# Optional arguments
-- `exclude_unsaved`: (Boolean) Pass True to exclude gifts that aren't saved to the chat's profile page
-- `exclude_saved`: (Boolean) Pass True to exclude gifts that are saved to the chat's profile page
-- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
-- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
-- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
-- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain
-- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
-- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date
-- `offset`: (String) Offset of the first entry to return
-- `limit`: (Integer) The maximum number of gifts to be returned; 1-100
-
-[Function documentation source](https://core.telegram.org/bots/api#getchatgifts)
-"""),
-(:getBusinessAccountGifts, """
-	getBusinessAccountGifts([tg::TelegramClient]; kwargs...)
-
-Use this method to get the gifts received and owned by a managed business account. Returns a OwnedGifts object on success.
-
-# Required arguments
-- `business_connection_id`: (String) Unique identifier of the business connection
-
-# Optional arguments
-- `exclude_unsaved`: (Boolean) Pass True to exclude gifts that aren't saved to the account's profile page
-- `exclude_saved`: (Boolean) Pass True to exclude gifts that are saved to the account's profile page
-- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
-- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
-- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
-- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain
-- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
-- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date
-- `offset`: (String) Offset of the first entry to return
-- `limit`: (Integer) The maximum number of gifts to be returned; 1-100
-
-[Function documentation source](https://core.telegram.org/bots/api#getbusinessaccountgifts)
-"""),
-(:sendMessageDraft, """
-	sendMessageDraft([tg::TelegramClient]; kwargs...)
-
-Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled. Returns True on success.
-
-# Required arguments
-- `chat_id`: (Integer) Unique identifier for the target private chat
-- `message_thread_id`: (Integer) Unique identifier for the target message thread
-- `draft_id`: (Integer) Unique identifier of the message draft
-- `text`: (String) Text of the message to be sent
-
-# Optional arguments
-- `parse_mode`: (String) Mode for parsing entities in the message text
-- `entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in message text
-
-[Function documentation source](https://core.telegram.org/bots/api#sendmessagedraft)
-"""),
-(:repostStory, """
-	repostStory([tg::TelegramClient]; kwargs...)
-
-Use this method to repost a story on behalf of a business account from another business account. Returns Story on success.
-
-# Required arguments
-- `business_connection_id`: (String) Unique identifier of the business connection
-- `from_chat_id`: (Integer) Unique identifier of the chat which posted the story
-- `from_story_id`: (Integer) Unique identifier of the story that should be reposted
-- `active_period`: (Integer) Period after which the story is moved to the archive
-
-# Optional arguments
-- `post_to_chat_page`: (Boolean) Pass True to keep the story accessible after it expires
-- `protect_content`: (Boolean) Pass True if the content of the story must be protected from forwarding and screenshotting
-
-[Function documentation source](https://core.telegram.org/bots/api#repoststory)
-""")
 ]
