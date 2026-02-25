@@ -2430,4 +2430,16 @@ end
     end
 end
 
+# RF-073: General forum topic methods
+@testset "General Forum Topic Methods" begin
+    @testset "unpinAllGeneralForumTopicMessages" begin
+        @testset "successful unpinAllGeneralForumTopicMessages" begin
+            responses = Dict("unpinAllGeneralForumTopicMessages" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = unpinAllGeneralForumTopicMessages(tg; chat_id = 123)
+            @test result == true
+        end
+    end
+end
+
 end # module
