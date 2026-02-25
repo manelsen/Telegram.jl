@@ -18,6 +18,9 @@ include("client.jl")
 include("api.jl")
 using .API
 
+include("api_methods.jl")
+using .Methods
+
 include("logging.jl")
 include("bot.jl")
 
