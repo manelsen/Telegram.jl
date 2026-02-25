@@ -1649,4 +1649,232 @@ end
     end
 end
 
+# RF-056: Gift and available gifts methods
+@testset "Gift and Available Gifts Methods" begin
+    @testset "getAvailableGifts" begin
+        @testset "successful getAvailableGifts" begin
+            responses = Dict("getAvailableGifts" => Dict(
+                "gifts" => []
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getAvailableGifts(tg)
+            @test haskey(result, "gifts")
+        end
+    end
+
+    @testset "sendGift" begin
+        @testset "successful sendGift" begin
+            responses = Dict("sendGift" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = sendGift(tg; user_id = 123, gift_id = "gift_123", diamonds = 5)
+            @test result == true
+        end
+
+        @testset "sendGift with pay_for_upgrade" begin
+            responses = Dict("sendGift" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = sendGift(tg; user_id = 123, gift_id = "gift_123", diamonds = 5, pay_for_upgrade = true)
+            @test result == true
+        end
+    end
+
+    @testset "giftPremiumSubscription" begin
+        @testset "successful giftPremiumSubscription" begin
+            responses = Dict("giftPremiumSubscription" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = giftPremiumSubscription(tg; user_id = 123, month_count = 6)
+            @test result == true
+        end
+    end
+end
+
+# RF-057: Message editing and media methods
+@testset "Message Editing and Media Methods" begin
+    @testset "editMessageMedia" begin
+        @testset "successful editMessageMedia" begin
+            responses = Dict("editMessageMedia" => Dict(
+                "message_id" => 123,
+                "media" => Dict("type" => "photo")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editMessageMedia(tg; chat_id = 123, message_id = 123, media = Dict("type" => "photo", "media" => "photo_123"))
+            @test result["message_id"] == 123
+        end
+    end
+
+    @testset "stopMessageLiveLocation" begin
+        @testset "successful stopMessageLiveLocation" begin
+            responses = Dict("stopMessageLiveLocation" => Dict(
+                "message_id" => 123,
+                "location" => nothing
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = stopMessageLiveLocation(tg; chat_id = 123, message_id = 123)
+            @test result["message_id"] == 123
+        end
+    end
+end
+
+# RF-058: User emoji status methods
+@testset "User Emoji Status Methods" begin
+    @testset "setUserEmojiStatus" begin
+        @testset "successful setUserEmojiStatus" begin
+            responses = Dict("setUserEmojiStatus" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setUserEmojiStatus(tg; user_id = 123, emoji_status_custom_emoji_id = "emoji_123")
+            @test result == true
+        end
+
+        @testset "setUserEmojiStatus with expiration" begin
+            responses = Dict("setUserEmojiStatus" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setUserEmojiStatus(tg; user_id = 123, emoji_status_custom_emoji_id = "emoji_123", emoji_status_expiration_date = 1700000000)
+            @test result == true
+        end
+    end
+end
+
+# RF-059: Message reaction methods
+@testset "Message Reaction Methods" begin
+    @testset "setMessageReaction" begin
+        @testset "successful setMessageReaction" begin
+            responses = Dict("setMessageReaction" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMessageReaction(tg; chat_id = 123, message_id = 456, reaction = [Dict("type" => "emoji", "emoji" => "👍")])
+            @test result == true
+        end
+
+        @testset "setMessageReaction with big emoji" begin
+            responses = Dict("setMessageReaction" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMessageReaction(tg; chat_id = 123, message_id = 456, reaction = [Dict("type" => "emoji", "emoji" => "🎉")], is_big = true)
+            @test result == true
+        end
+    end
+end
+
+# RF-060: Chat subscription methods
+@testset "Chat Subscription Methods" begin
+    @testset "createChatSubscriptionInviteLink" begin
+        @testset "successful createChatSubscriptionInviteLink with period and price" begin
+            responses = Dict("createChatSubscriptionInviteLink" => Dict(
+                "invite_link" => "https://t.me/+sub123",
+                "subscription_period" => 2592000,
+                "subscription_price" => 100
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = createChatSubscriptionInviteLink(tg; chat_id = 123, subscription_period = 2592000, subscription_price = 100)
+            @test result["subscription_price"] == 100
+        end
+    end
+
+    @testset "editChatSubscriptionInviteLink" begin
+        @testset "successful editChatSubscriptionInviteLink" begin
+            responses = Dict("editChatSubscriptionInviteLink" => Dict(
+                "invite_link" => "https://t.me/+sub123",
+                "name" => "Premium"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editChatSubscriptionInviteLink(tg; invite_link = "https://t.me/+sub123", name = "Premium")
+            @test result["name"] == "Premium"
+        end
+    end
+end
+
+# RF-061: Forward and copy multiple messages
+@testset "Forward and Copy Multiple Messages" begin
+    @testset "forwardMessages" begin
+        @testset "successful forwardMessages to chat" begin
+            responses = Dict("forwardMessages" => [
+                Dict("message_id" => 1),
+                Dict("message_id" => 2)
+            ])
+            tg = MockClient("test_token"; responses = responses)
+            result = forwardMessages(tg; chat_id = 123, from_chat_id = 456, message_ids = [1, 2])
+            @test length(result) == 2
+        end
+
+        @testset "forwardMessages with disable_notification" begin
+            responses = Dict("forwardMessages" => [Dict("message_id" => 1)])
+            tg = MockClient("test_token"; responses = responses)
+            result = forwardMessages(tg; chat_id = 123, from_chat_id = 456, message_ids = [1], disable_notification = true)
+            @test length(result) == 1
+        end
+    end
+
+    @testset "copyMessages" begin
+        @testset "successful copyMessages to chat" begin
+            responses = Dict("copyMessages" => [
+                Dict("message_id" => 1),
+                Dict("message_id" => 2)
+            ])
+            tg = MockClient("test_token"; responses = responses)
+            result = copyMessages(tg; chat_id = 123, from_chat_id = 456, message_ids = [1, 2])
+            @test length(result) == 2
+        end
+
+        @testset "copyMessages with remove_caption" begin
+            responses = Dict("copyMessages" => [Dict("message_id" => 1)])
+            tg = MockClient("test_token"; responses = responses)
+            result = copyMessages(tg; chat_id = 123, from_chat_id = 456, message_ids = [1], remove_caption = true)
+            @test length(result) == 1
+        end
+    end
+end
+
+# RF-062: Message draft methods
+@testset "Message Draft Methods" begin
+    @testset "sendMessageDraft" begin
+        @testset "successful sendMessageDraft" begin
+            responses = Dict("sendMessageDraft" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = sendMessageDraft(tg; chat_id = 123, message_thread_id = 456, draft_id = 789, text = "Draft text")
+            @test result == true
+        end
+    end
+end
+
+# RF-063: Story methods
+@testset "Story Methods" begin
+    @testset "postStory" begin
+        @testset "successful postStory" begin
+            responses = Dict("postStory" => Dict(
+                "story" => Dict("id" => 1)
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = postStory(tg; business_connection_id = "conn_1", chat_id = 123, media = Dict("type" => "photo", "media" => "photo_data"))
+            @test result["story"]["id"] == 1
+        end
+    end
+
+    @testset "editStory" begin
+        @testset "successful editStory" begin
+            responses = Dict("editStory" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = editStory(tg; business_connection_id = "conn_1", story_id = 1, media = Dict("type" => "photo", "media" => "new_photo"))
+            @test result == true
+        end
+    end
+
+    @testset "deleteStory" begin
+        @testset "successful deleteStory" begin
+            responses = Dict("deleteStory" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteStory(tg; business_connection_id = "conn_1", story_id = 1)
+            @test result == true
+        end
+    end
+
+    @testset "repostStory" begin
+        @testset "successful repostStory" begin
+            responses = Dict("repostStory" => Dict(
+                "story" => Dict("id" => 2)
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = repostStory(tg; business_connection_id = "conn_1", from_chat_id = 123, from_story_id = 1)
+            @test result["story"]["id"] == 2
+        end
+    end
+end
+
 end # module
