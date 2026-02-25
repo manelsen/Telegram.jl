@@ -723,4 +723,154 @@ end
     end
 end
 
+# RF-042: Additional basic methods
+@testset "Additional Basic Methods" begin
+    @testset "setWebhook" begin
+        @testset "successful setWebhook" begin
+            responses = Dict("setWebhook" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setWebhook(tg; url = "https://example.com/webhook")
+            @test result == true
+        end
+
+        @testset "setWebhook with certificate" begin
+            responses = Dict("setWebhook" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setWebhook(tg; url = "https://example.com/webhook", certificate = "cert_data")
+            @test result == true
+        end
+    end
+
+    @testset "deleteWebhook" begin
+        @testset "successful deleteWebhook" begin
+            responses = Dict("deleteWebhook" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = deleteWebhook(tg)
+            @test result == true
+        end
+    end
+
+    @testset "getWebhookInfo" begin
+        @testset "successful getWebhookInfo" begin
+            responses = Dict("getWebhookInfo" => Dict(
+                "url" => "https://example.com/webhook",
+                "has_custom_certificate" => false,
+                "pending_update_count" => 0
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = getWebhookInfo(tg)
+            @test result["url"] == "https://example.com/webhook"
+            @test result["pending_update_count"] == 0
+        end
+    end
+
+    @testset "logOut" begin
+        @testset "successful logOut" begin
+            responses = Dict("logOut" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = logOut(tg)
+            @test result == true
+        end
+    end
+
+    @testset "closeBot" begin
+        @testset "successful closeBot" begin
+            responses = Dict("close" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = API.close(tg)
+            @test result == true
+        end
+    end
+
+    @testset "forwardMessage" begin
+        @testset "successful forwardMessage" begin
+            responses = Dict("forwardMessage" => Dict(
+                "message_id" => 123,
+                "from" => Dict("id" => 456, "is_bot" => false, "first_name" => "User"),
+                "chat" => Dict("id" => 789, "type" => "private"),
+                "date" => Int(floor(time()))
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = forwardMessage(tg; chat_id = 789, from_chat_id = 456, message_id = 123)
+            @test result["message_id"] == 123
+        end
+
+        @testset "forwardMessage with disable_notification" begin
+            responses = Dict("forwardMessage" => Dict("message_id" => 124))
+            tg = MockClient("test_token"; responses = responses)
+            result = forwardMessage(tg; chat_id = 789, from_chat_id = 456, message_id = 123, disable_notification = true)
+            @test result["message_id"] == 124
+        end
+    end
+
+    @testset "copyMessage" begin
+        @testset "successful copyMessage" begin
+            responses = Dict("copyMessage" => Dict("message_id" => 125))
+            tg = MockClient("test_token"; responses = responses)
+            result = copyMessage(tg; chat_id = 789, from_chat_id = 456, message_id = 123)
+            @test result["message_id"] == 125
+        end
+    end
+
+    @testset "sendPhoto" begin
+        @testset "successful sendPhoto" begin
+            responses = Dict("sendPhoto" => Dict(
+                "message_id" => 126,
+                "photo" => [Dict("file_id" => "photo_123")]
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendPhoto(tg; chat_id = 123, photo = "photo_file_id")
+            @test result["message_id"] == 126
+        end
+    end
+
+    @testset "sendDocument" begin
+        @testset "successful sendDocument" begin
+            responses = Dict("sendDocument" => Dict(
+                "message_id" => 127,
+                "document" => Dict("file_id" => "doc_123")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendDocument(tg; chat_id = 123, document = "doc_file_id")
+            @test result["message_id"] == 127
+        end
+    end
+
+    @testset "sendVideo" begin
+        @testset "successful sendVideo" begin
+            responses = Dict("sendVideo" => Dict(
+                "message_id" => 128,
+                "video" => Dict("file_id" => "video_123")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendVideo(tg; chat_id = 123, video = "video_file_id")
+            @test result["message_id"] == 128
+        end
+    end
+
+    @testset "sendPoll" begin
+        @testset "successful sendPoll" begin
+            responses = Dict("sendPoll" => Dict(
+                "message_id" => 129,
+                "poll" => Dict("id" => "poll_123", "question" => "Test?")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendPoll(tg; chat_id = 123, question = "Test?", options = ["Yes", "No"])
+            @test result["message_id"] == 129
+        end
+    end
+
+    @testset "sendDice" begin
+        @testset "successful sendDice" begin
+            responses = Dict("sendDice" => Dict(
+                "message_id" => 130,
+                "dice" => Dict("value" => 6, "emoji" => "🎲")
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendDice(tg; chat_id = 123)
+            @test result["message_id"] == 130
+        end
+    end
+end
+
 end # module
