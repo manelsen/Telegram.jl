@@ -30,13 +30,18 @@ function MockClient(token::String = "test_token"; responses::Dict = Dict{String,
             resp = responses[method]
 
             # Check if response is an error
-            if get(resp, "ok", false)
-                throw(Telegram.TelegramError(resp))
-            elseif haskey(resp, "result")
-                # Return the result field for successful responses
-                return resp["result"]
+            if isa(resp, Dict)
+                if !get(resp, "ok", true)
+                    throw(Telegram.TelegramError(resp))
+                elseif haskey(resp, "result")
+                    # Return the result field for successful responses
+                    return resp["result"]
+                else
+                    # For responses that return true directly (like setMyProfilePhoto)
+                    return resp
+                end
             else
-                # For responses that return true directly (like setMyProfilePhoto)
+                # For non-dict responses (like simple true values)
                 return resp
             end
         else

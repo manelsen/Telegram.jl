@@ -241,44 +241,6 @@ end
     end
 end
 
-        @testset "editMessageLiveLocation with infinite live_period (0x7FFFFFFF)" begin
-            responses = Dict("editMessageLiveLocation" => Dict(
-                "message_id" => 456,
-                "date" => Int(floor(time())),
-                "chat" => Dict("id" => 123, "type" => "private"),
-                "location" => Dict("latitude" => 37.7749, "longitude" => -122.4194)
-            ))
-            tg = MockClient("test_token"; responses = responses)
-            result = editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = 37.7749, longitude = -122.4194, live_period = 0x7FFFFFFF)
-            @test result["message_id"] == 456
-        end
-
-        @testset "editMessageLiveLocation with invalid message_id" begin
-            responses = Dict("editMessageLiveLocation" => error_response(400, "Bad Request: message not found"))
-            tg = MockClient("test_token"; responses = responses)
-            @test_throws TelegramError editMessageLiveLocation(tg; chat_id = 123, message_id = 999, latitude = 37.7749, longitude = -122.4194)
-        end
-
-        @testset "editMessageLiveLocation with negative coordinates" begin
-            responses = Dict("editMessageLiveLocation" => error_response(400, "Bad Request: coordinates are invalid"))
-            tg = MockClient("test_token"; responses = responses)
-            @test_throws TelegramError editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = -91.0, longitude = -122.4194)
-        end
-
-        @testset "editMessageLiveLocation with heading and proximity_alert_radius" begin
-            responses = Dict("editMessageLiveLocation" => Dict(
-                "message_id" => 456,
-                "date" => Int(floor(time())),
-                "chat" => Dict("id" => 123, "type" => "private"),
-                "location" => Dict("latitude" => 37.7749, "longitude" => -122.4194)
-            ))
-            tg = MockClient("test_token"; responses = responses)
-            result = editMessageLiveLocation(tg; chat_id = 123, message_id = 456, latitude = 37.7749, longitude = -122.4194, heading = 90, proximity_alert_radius = 100)
-            @test result["message_id"] == 456
-        end
-    end
-end
-
 # RF-037 to RF-038: API 7.4-7.5 methods
 @testset "API 7.4-7.5 Methods" begin
     @testset "refundStarPayment" begin
@@ -470,6 +432,162 @@ end
             tg = MockClient("test_token"; responses = responses)
             result = repostStory(tg; business_connection_id = "conn_123", from_chat_id = 123, from_story_id = 456, active_period = 86400)
             @test result isa Dict
+        end
+    end
+end
+
+# RF-039: API 7.6-7.7 methods
+@testset "API 7.6-7.7 Methods" begin
+    @testset "sendPaidMedia" begin
+        @testset "successful sendPaidMedia" begin
+            responses = Dict("sendPaidMedia" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "message_id" => 456,
+                    "date" => Int(floor(time())),
+                    "chat" => Dict(
+                        "id" => 123,
+                        "type" => "private"
+                    )
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendPaidMedia(tg; business_connection_id = "conn_1", star_count = 100, media = [Dict("type" => "photo", "media" => "photo_data")])
+            @test result["message_id"] == 456
+        end
+
+        @testset "sendPaidMedia with chat_id" begin
+            responses = Dict("sendPaidMedia" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "message_id" => 457,
+                    "date" => Int(floor(time())),
+                    "chat" => Dict("id" => 456, "type" => "channel")
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendPaidMedia(tg; business_connection_id = "conn_1", star_count = 200, chat_id = "@channel", media = [Dict("type" => "video", "media" => "video_file")])
+            @test result["message_id"] == 457
+        end
+
+        @testset "sendPaidMedia with caption" begin
+            responses = Dict("sendPaidMedia" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "message_id" => 458,
+                    "date" => Int(floor(time())),
+                    "chat" => Dict("id" => 123, "type" => "private"),
+                    "caption" => "Paid media caption"
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendPaidMedia(tg; business_connection_id = "conn_1", star_count = 150, media = [Dict("type" => "photo", "media" => "photo_data", "caption" => "Caption")])
+            @test result["caption"] == "Paid media caption"
+        end
+
+        @testset "sendPaidMedia with insufficient stars" begin
+            responses = Dict("sendPaidMedia" => Dict(
+                "ok" => false,
+                "error_code" => 400,
+                "description" => "Bad Request: insufficient star balance"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError sendPaidMedia(tg; business_connection_id = "conn_1", star_count = 999999999, media = [Dict("type" => "photo", "media" => "photo_data")])
+        end
+
+        @testset "sendPaidMedia with multiple media" begin
+            responses = Dict("sendPaidMedia" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "message_id" => 459,
+                    "date" => Int(floor(time())),
+                    "chat" => Dict("id" => 123, "type" => "private"),
+                    "media_group_id" => "group_1"
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = sendPaidMedia(tg; business_connection_id = "conn_1", star_count = 300, media = [
+                Dict("type" => "photo", "media" => "photo1"),
+                Dict("type" => "photo", "media" => "photo2")
+            ])
+            @test result["media_group_id"] == "group_1"
+        end
+    end
+
+    @testset "createChatSubscriptionInviteLink" begin
+        @testset "successful createChatSubscriptionInviteLink" begin
+            responses = Dict("createChatSubscriptionInviteLink" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "invite_link" => "https://t.me/+abc123",
+                    "creator" => Dict("id" => 123, "is_bot" => false, "first_name" => "User"),
+                    "creates_join_request" => false,
+                    "is_primary" => false,
+                    "is_revoked" => false,
+                    "subscription_period" => 2592000,
+                    "subscription_price" => 50
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = createChatSubscriptionInviteLink(tg; chat_id = 123, subscription_period = 2592000, subscription_price = 50)
+            @test result["subscription_period"] == 2592000
+            @test result["subscription_price"] == 50
+        end
+
+        @testset "createChatSubscriptionInviteLink with name" begin
+            responses = Dict("createChatSubscriptionInviteLink" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "invite_link" => "https://t.me/+xyz789",
+                    "name" => "Premium Subscription",
+                    "subscription_period" => 604800,
+                    "subscription_price" => 100
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = createChatSubscriptionInviteLink(tg; chat_id = "@channel", subscription_period = 604800, subscription_price = 100, name = "Premium Subscription")
+            @test result["name"] == "Premium Subscription"
+        end
+    end
+
+    @testset "editChatSubscriptionInviteLink" begin
+        @testset "successful editChatSubscriptionInviteLink" begin
+            responses = Dict("editChatSubscriptionInviteLink" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "invite_link" => "https://t.me/+abc123",
+                    "creator" => Dict("id" => 123, "is_bot" => false, "first_name" => "User"),
+                    "subscription_period" => 5184000,
+                    "subscription_price" => 75
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editChatSubscriptionInviteLink(tg; invite_link = "https://t.me/+abc123", subscription_period = 5184000, subscription_price = 75)
+            @test result["subscription_period"] == 5184000
+            @test result["subscription_price"] == 75
+        end
+
+        @testset "editChatSubscriptionInviteLink with invalid link" begin
+            responses = Dict("editChatSubscriptionInviteLink" => Dict(
+                "ok" => false,
+                "error_code" => 400,
+                "description" => "Bad Request: invite link not found"
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            @test_throws TelegramError editChatSubscriptionInviteLink(tg; invite_link = "https://t.me/+invalid", subscription_price = 50)
+        end
+
+        @testset "editChatSubscriptionInviteLink change name only" begin
+            responses = Dict("editChatSubscriptionInviteLink" => Dict(
+                "ok" => true,
+                "result" => Dict(
+                    "invite_link" => "https://t.me/+abc123",
+                    "name" => "Updated Name"
+                )
+            ))
+            tg = MockClient("test_token"; responses = responses)
+            result = editChatSubscriptionInviteLink(tg; invite_link = "https://t.me/+abc123", name = "Updated Name")
+            @test result["name"] == "Updated Name"
         end
     end
 end
