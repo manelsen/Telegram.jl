@@ -10,6 +10,8 @@ import Base.CoreLogging:
     AbstractLogger,
     handle_message, shouldlog, min_enabled_level, catch_exceptions
 
+include("decision_support.jl")
+
 export TelegramClient, useglobally!, TelegramLogger, run_bot
 
 include("client.jl")

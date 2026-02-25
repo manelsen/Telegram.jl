@@ -7,10 +7,13 @@ mutable struct TelegramClient
     chat_id::String
     parse_mode::String
     ep::String
+    query_func::Union{Function, Nothing}
+    request_id::String
+    enable_traceability::Bool
 end
 
 """
-    TelegramClient(token; chat_id, parse_mode, ep, use_globally = true)
+    TelegramClient(token; chat_id, parse_mode, ep, use_globally = true, query_func = nothing, enable_traceability = true)
 
 Creates telegram client, which can be used to run telegram commands.
 
@@ -19,14 +22,23 @@ Creates telegram client, which can be used to run telegram commands.
 - `chat_id`: if set, used as default `chat_id` argument for all chat related commands. To get specific `chat_id`, send message to the bot in telegram application and use [`getUpdates`](@ref) command.
 - `parse_mode`: if set, used as default for text messaging commands.
 - `use_globally::Bool`: default `true`. If set to `true` then it current client can be used as default in all telegram commands.
-- `ep`: endpoint for telegram api. By default `https://api.telegram.org/bot` is used, but you may change it, if you are using proxy or for testing purposes. 
+- `ep`: endpoint for telegram api. By default `https://api.telegram.org/bot` is used, but you may change it, if you are using proxy or for testing purposes.
+- `query_func`: optional custom function for making HTTP queries. Useful for testing and mocking. Function signature: `(client, method, params) -> result`.
+- `enable_traceability::Bool`: default `true`. If set to `true`, enables Decision Support traceability features (DS-001, DS-002, DS-003, DS-004, DS-005).
 """
-function TelegramClient(token = get(ENV, "TELEGRAM_BOT_TOKEN", ""); chat_id = get(ENV, "TELEGRAM_BOT_CHAT_ID" ,""), parse_mode = "", ep = "https://api.telegram.org/bot", use_globally = true)
-    client = TelegramClient(token, chat_id, parse_mode, ep) 
+function TelegramClient(token = get(ENV, "TELEGRAM_BOT_TOKEN", "");
+                     chat_id = get(ENV, "TELEGRAM_BOT_CHAT_ID" ,""),
+                     parse_mode = "",
+                     ep = "https://api.telegram.org/bot",
+                     use_globally = true,
+                     query_func = nothing,
+                     enable_traceability = true)
+    request_id = enable_traceability ? DecisionSupport.generate_request_id() : ""
+    client = TelegramClient(token, chat_id, parse_mode, ep, query_func, request_id, enable_traceability)
     if use_globally
         useglobally!(client)
     end
-    
+
     return client
 end
 
@@ -86,6 +98,31 @@ process_params(x::AbstractString) = x
 process_params(x) = JSON3.write(x)   
 
 function query(client::TelegramClient, method; params = Dict())
+    # Use custom query function if provided (useful for testing/mocking)
+    if client.query_func !== nothing
+        return client.query_func(client, method, params)
+    end
+
+    # DS-001: Traceability - Add request ID, timestamp, and schema version
+    if client.enable_traceability
+        # Generate new request ID for each query
+        client.request_id = DecisionSupport.generate_request_id()
+
+        # Add traceability metadata
+        params = copy(params)
+        params["_request_id"] = client.request_id
+        params["_timestamp"] = DecisionSupport.datetime_to_iso8601(DecisionSupport.generate_timestamp_utc())
+        params["_schema_version"] = DecisionSupport.get_schema_version()
+
+        # Log request ID (DS-001)
+        @debug "Telegram API Request" method=method request_id=client.request_id
+    end
+
+    # DS-003: Integrity - Validate HTTPS is enforced
+    if !DecisionSupport.validate_https_enforced(client.ep)
+        @warn "HTTPS not enforced for endpoint" endpoint=client.ep
+    end
+
     req_uri = client.ep * token(client) * "/" * method
     intersection = intersect(keys(params), DEFAULT_OPTS.upload_kw)
     if isempty(intersection)
@@ -105,7 +142,7 @@ function query(client::TelegramClient, method; params = Dict())
     end
 
     response = JSON3.read(res.body)
-    
+
     if response.ok
         return response.result
     else
