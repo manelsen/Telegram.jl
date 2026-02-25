@@ -45,7 +45,9 @@ getWebhookInfo
 * [`Telegram.close`](@ref)
 * [`Telegram.sendMessage`](@ref)
 * [`Telegram.forwardMessage`](@ref)
+* [`Telegram.forwardMessages`](@ref)
 * [`Telegram.copyMessage`](@ref)
+* [`Telegram.copyMessages`](@ref)
 * [`Telegram.sendPhoto`](@ref)
 * [`Telegram.sendAudio`](@ref)
 * [`Telegram.sendDocument`](@ref)
@@ -53,14 +55,20 @@ getWebhookInfo
 * [`Telegram.sendAnimation`](@ref)
 * [`Telegram.sendVoice`](@ref)
 * [`Telegram.sendVideoNote`](@ref)
+* [`Telegram.sendPaidMedia`](@ref)
 * [`Telegram.sendMediaGroup`](@ref)
 * [`Telegram.sendLocation`](@ref)
 * [`Telegram.sendVenue`](@ref)
 * [`Telegram.sendContact`](@ref)
 * [`Telegram.sendPoll`](@ref)
+* [`Telegram.sendChecklist`](@ref)
 * [`Telegram.sendDice`](@ref)
+* [`Telegram.sendMessageDraft`](@ref)
 * [`Telegram.sendChatAction`](@ref)
+* [`Telegram.setMessageReaction`](@ref)
 * [`Telegram.getUserProfilePhotos`](@ref)
+* [`Telegram.getUserProfileAudios`](@ref)
+* [`Telegram.setUserEmojiStatus`](@ref)
 * [`Telegram.getFile`](@ref)
 * [`Telegram.banChatMember`](@ref)
 * [`Telegram.unbanChatMember`](@ref)
@@ -73,6 +81,8 @@ getWebhookInfo
 * [`Telegram.exportChatInviteLink`](@ref)
 * [`Telegram.createChatInviteLink`](@ref)
 * [`Telegram.editChatInviteLink`](@ref)
+* [`Telegram.createChatSubscriptionInviteLink`](@ref)
+* [`Telegram.editChatSubscriptionInviteLink`](@ref)
 * [`Telegram.revokeChatInviteLink`](@ref)
 * [`Telegram.approveChatJoinRequest`](@ref)
 * [`Telegram.declineChatJoinRequest`](@ref)
@@ -102,7 +112,10 @@ getWebhookInfo
 * [`Telegram.reopenGeneralForumTopic`](@ref)
 * [`Telegram.hideGeneralForumTopic`](@ref)
 * [`Telegram.unhideGeneralForumTopic`](@ref)
+* [`Telegram.unpinAllGeneralForumTopicMessages`](@ref)
 * [`Telegram.answerCallbackQuery`](@ref)
+* [`Telegram.getUserChatBoosts`](@ref)
+* [`Telegram.getBusinessConnection`](@ref)
 * [`Telegram.setMyCommands`](@ref)
 * [`Telegram.deleteMyCommands`](@ref)
 * [`Telegram.getMyCommands`](@ref)
@@ -112,10 +125,39 @@ getWebhookInfo
 * [`Telegram.getMyDescription`](@ref)
 * [`Telegram.setMyShortDescription`](@ref)
 * [`Telegram.getMyShortDescription`](@ref)
+* [`Telegram.setMyProfilePhoto`](@ref)
+* [`Telegram.removeMyProfilePhoto`](@ref)
 * [`Telegram.setChatMenuButton`](@ref)
 * [`Telegram.getChatMenuButton`](@ref)
 * [`Telegram.setMyDefaultAdministratorRights`](@ref)
 * [`Telegram.getMyDefaultAdministratorRights`](@ref)
+* [`Telegram.getAvailableGifts`](@ref)
+* [`Telegram.sendGift`](@ref)
+* [`Telegram.giftPremiumSubscription`](@ref)
+* [`Telegram.verifyUser`](@ref)
+* [`Telegram.verifyChat`](@ref)
+* [`Telegram.removeUserVerification`](@ref)
+* [`Telegram.removeChatVerification`](@ref)
+* [`Telegram.readBusinessMessage`](@ref)
+* [`Telegram.deleteBusinessMessages`](@ref)
+* [`Telegram.setBusinessAccountName`](@ref)
+* [`Telegram.setBusinessAccountUsername`](@ref)
+* [`Telegram.setBusinessAccountBio`](@ref)
+* [`Telegram.setBusinessAccountProfilePhoto`](@ref)
+* [`Telegram.removeBusinessAccountProfilePhoto`](@ref)
+* [`Telegram.setBusinessAccountGiftSettings`](@ref)
+* [`Telegram.getBusinessAccountStarBalance`](@ref)
+* [`Telegram.transferBusinessAccountStars`](@ref)
+* [`Telegram.getBusinessAccountGifts`](@ref)
+* [`Telegram.getUserGifts`](@ref)
+* [`Telegram.getChatGifts`](@ref)
+* [`Telegram.convertGiftToStars`](@ref)
+* [`Telegram.upgradeGift`](@ref)
+* [`Telegram.transferGift`](@ref)
+* [`Telegram.postStory`](@ref)
+* [`Telegram.repostStory`](@ref)
+* [`Telegram.editStory`](@ref)
+* [`Telegram.deleteStory`](@ref)
 
 ```@docs
 getMe
@@ -138,7 +180,15 @@ forwardMessage
 ```
 
 ```@docs
+forwardMessages
+```
+
+```@docs
 copyMessage
+```
+
+```@docs
+copyMessages
 ```
 
 ```@docs
@@ -170,6 +220,10 @@ sendVideoNote
 ```
 
 ```@docs
+sendPaidMedia
+```
+
+```@docs
 sendMediaGroup
 ```
 
@@ -190,7 +244,15 @@ sendPoll
 ```
 
 ```@docs
+sendChecklist
+```
+
+```@docs
 sendDice
+```
+
+```@docs
+sendMessageDraft
 ```
 
 ```@docs
@@ -198,7 +260,19 @@ sendChatAction
 ```
 
 ```@docs
+setMessageReaction
+```
+
+```@docs
 getUserProfilePhotos
+```
+
+```@docs
+getUserProfileAudios
+```
+
+```@docs
+setUserEmojiStatus
 ```
 
 ```@docs
@@ -247,6 +321,14 @@ createChatInviteLink
 
 ```@docs
 editChatInviteLink
+```
+
+```@docs
+createChatSubscriptionInviteLink
+```
+
+```@docs
+editChatSubscriptionInviteLink
 ```
 
 ```@docs
@@ -366,7 +448,19 @@ unhideGeneralForumTopic
 ```
 
 ```@docs
+unpinAllGeneralForumTopicMessages
+```
+
+```@docs
 answerCallbackQuery
+```
+
+```@docs
+getUserChatBoosts
+```
+
+```@docs
+getBusinessConnection
 ```
 
 ```@docs
@@ -406,6 +500,14 @@ getMyShortDescription
 ```
 
 ```@docs
+setMyProfilePhoto
+```
+
+```@docs
+removeMyProfilePhoto
+```
+
+```@docs
 setChatMenuButton
 ```
 
@@ -421,6 +523,114 @@ setMyDefaultAdministratorRights
 getMyDefaultAdministratorRights
 ```
 
+```@docs
+getAvailableGifts
+```
+
+```@docs
+sendGift
+```
+
+```@docs
+giftPremiumSubscription
+```
+
+```@docs
+verifyUser
+```
+
+```@docs
+verifyChat
+```
+
+```@docs
+removeUserVerification
+```
+
+```@docs
+removeChatVerification
+```
+
+```@docs
+readBusinessMessage
+```
+
+```@docs
+deleteBusinessMessages
+```
+
+```@docs
+setBusinessAccountName
+```
+
+```@docs
+setBusinessAccountUsername
+```
+
+```@docs
+setBusinessAccountBio
+```
+
+```@docs
+setBusinessAccountProfilePhoto
+```
+
+```@docs
+removeBusinessAccountProfilePhoto
+```
+
+```@docs
+setBusinessAccountGiftSettings
+```
+
+```@docs
+getBusinessAccountStarBalance
+```
+
+```@docs
+transferBusinessAccountStars
+```
+
+```@docs
+getBusinessAccountGifts
+```
+
+```@docs
+getUserGifts
+```
+
+```@docs
+getChatGifts
+```
+
+```@docs
+convertGiftToStars
+```
+
+```@docs
+upgradeGift
+```
+
+```@docs
+transferGift
+```
+
+```@docs
+postStory
+```
+
+```@docs
+repostStory
+```
+
+```@docs
+editStory
+```
+
+```@docs
+deleteStory
+```
+
 ## Updating messages
 
 * [`Telegram.editMessageText`](@ref)
@@ -428,9 +638,13 @@ getMyDefaultAdministratorRights
 * [`Telegram.editMessageMedia`](@ref)
 * [`Telegram.editMessageLiveLocation`](@ref)
 * [`Telegram.stopMessageLiveLocation`](@ref)
+* [`Telegram.editMessageChecklist`](@ref)
 * [`Telegram.editMessageReplyMarkup`](@ref)
 * [`Telegram.stopPoll`](@ref)
+* [`Telegram.approveSuggestedPost`](@ref)
+* [`Telegram.declineSuggestedPost`](@ref)
 * [`Telegram.deleteMessage`](@ref)
+* [`Telegram.deleteMessages`](@ref)
 
 ```@docs
 editMessageText
@@ -453,6 +667,10 @@ stopMessageLiveLocation
 ```
 
 ```@docs
+editMessageChecklist
+```
+
+```@docs
 editMessageReplyMarkup
 ```
 
@@ -461,7 +679,19 @@ stopPoll
 ```
 
 ```@docs
+approveSuggestedPost
+```
+
+```@docs
+declineSuggestedPost
+```
+
+```@docs
 deleteMessage
+```
+
+```@docs
+deleteMessages
 ```
 
 ## Stickers
@@ -474,6 +704,7 @@ deleteMessage
 * [`Telegram.addStickerToSet`](@ref)
 * [`Telegram.setStickerPositionInSet`](@ref)
 * [`Telegram.deleteStickerFromSet`](@ref)
+* [`Telegram.replaceStickerInSet`](@ref)
 * [`Telegram.setStickerEmojiList`](@ref)
 * [`Telegram.setStickerKeywords`](@ref)
 * [`Telegram.setStickerMaskPosition`](@ref)
@@ -515,6 +746,10 @@ deleteStickerFromSet
 ```
 
 ```@docs
+replaceStickerInSet
+```
+
+```@docs
 setStickerEmojiList
 ```
 
@@ -546,6 +781,7 @@ deleteStickerSet
 
 * [`Telegram.answerInlineQuery`](@ref)
 * [`Telegram.answerWebAppQuery`](@ref)
+* [`Telegram.savePreparedInlineMessage`](@ref)
 
 ```@docs
 answerInlineQuery
@@ -555,12 +791,20 @@ answerInlineQuery
 answerWebAppQuery
 ```
 
+```@docs
+savePreparedInlineMessage
+```
+
 ## Payments
 
 * [`Telegram.sendInvoice`](@ref)
 * [`Telegram.createInvoiceLink`](@ref)
 * [`Telegram.answerShippingQuery`](@ref)
 * [`Telegram.answerPreCheckoutQuery`](@ref)
+* [`Telegram.getMyStarBalance`](@ref)
+* [`Telegram.getStarTransactions`](@ref)
+* [`Telegram.refundStarPayment`](@ref)
+* [`Telegram.editUserStarSubscription`](@ref)
 
 ```@docs
 sendInvoice
@@ -576,6 +820,22 @@ answerShippingQuery
 
 ```@docs
 answerPreCheckoutQuery
+```
+
+```@docs
+getMyStarBalance
+```
+
+```@docs
+getStarTransactions
+```
+
+```@docs
+refundStarPayment
+```
+
+```@docs
+editUserStarSubscription
 ```
 
 ## Telegram Passport
