@@ -1639,4 +1639,414 @@ This method will currently return scores for the target user, plus two of their 
 
 [Function documentation source](https://core.telegram.org/bots/api#getgamehighscores)
 """),
+(:setMessageReaction, """
+	setMessageReaction([tg::TelegramClient]; kwargs...)
+
+Use this method to change the chosen reactions on a message. Service messages can't be reacted to. Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel. In chats, only the emoji reactions are available, and in channels, both emoji and custom reactions are available. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `message_id`: (Integer) Identifier of the target message
+
+# Optional arguments
+- `reaction`: (ReactionType) New reaction to be set on the message. Pass an empty array to remove reactions from a message. If the reaction isn't available or has been removed, the method will succeed but no changes will be made to the message.
+- `is_big`: (Boolean) Pass True to set the reaction with a big animation. Ignored if `reaction` isn't specified.
+
+[Function documentation source](https://core.telegram.org/bots/api#setmessagereaction)
+"""),
+(:getMessageReactions, """
+	getMessageReactions([tg::TelegramClient]; kwargs...)
+
+Use this method to get reactions added for a message and optionally for a chosen reaction and/or user. Returns an Array of Reaction objects.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+- `message_id`: (Integer) Identifier of the target message
+
+# Optional arguments
+- `reaction`: (ReactionType) If specified, only reactions of this type will be returned. Otherwise, all reactions will be returned.
+- `limit`: (Integer) The maximum number of reactions to be returned. Defaults to 100.
+
+[Function documentation source](https://core.telegram.org/bots/api#getmessagereactions)
+"""),
+(:getChatBoost, """
+	getChatBoost([tg::TelegramClient]; kwargs...)
+
+Use this method to get information about a chat boost. Returns ChatBoost object on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
+- `boost_id`: (String) Identifier of the boost
+
+[Function documentation source](https://core.telegram.org/bots/api#getchatboost)
+"""),
+(:getUserChatBoosts, """
+	getUserChatBoosts([tg::TelegramClient]; kwargs...)
+
+Use this method to get the list of boosts added to a chat by a user. Requires administrator rights in the chat. Returns an Array of ChatBoost objects.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
+- `user_id`: (Integer) Unique identifier of the target user
+
+[Function documentation source](https://core.telegram.org/bots/api#getuserchatboosts)
+"""),
+(:getBusinessConnection, """
+	getBusinessConnection([tg::TelegramClient]; kwargs...)
+
+Use this method to get information about the connection of the bot with a business account. Returns BusinessConnection object on success.
+
+# Optional arguments
+- `connection_id`: (String) Unique identifier of the business connection
+
+[Function documentation source](https://core.telegram.org/bots/api#getbusinessconnection)
+"""),
+(:refundStarPayment, """
+	refundStarPayment([tg::TelegramClient]; kwargs...)
+
+Use this method to refunds a successful payment in Telegram Stars. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Identifier of the user whose payment will be refunded
+- `telegram_payment_charge_id`: (String) Telegram payment identifier
+
+[Function documentation source](https://core.telegram.org/bots/api#refundstarpayment)
+"""),
+(:getStarTransactions, """
+	getStarTransactions([tg::TelegramClient]; kwargs...)
+
+Use this method to get the list of transactions made by the bot. Returns an Array of StarTransaction objects.
+
+# Optional arguments
+- `offset`: (Integer) Number of transactions to skip in the response
+- `limit`: (Integer) The maximum number of transactions to be retrieved. Values between 1-100 are accepted. Defaults to 100.
+
+[Function documentation source](https://core.telegram.org/bots/api#getstartransactions)
+"""),
+(:sendPaidMedia, """
+	sendPaidMedia([tg::TelegramClient]; kwargs...)
+
+Use this method to send paid media to a channel, private chat, or group chat. Returns Message object on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `star_count`: (Integer) The number of Telegram Stars that must be paid to send the media
+
+# Optional arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup/channel (in the format `@supergroupusername`)
+- `media`: (Array of InputPaidMedia) A JSON-serialized array of descriptions of media to send
+- `show_caption_above_media`: (Boolean) Pass True to show the media caption above the media
+- `disable_notification`: (Boolean) Sends the message silently. Users will receive a notification with no sound.
+- `protect_content`: (Boolean) Protects the contents of the sent message from forwarding and saving
+- `reply_parameters`: (ReplyParameters) Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+
+[Function documentation source](https://core.telegram.org/bots/api#sendpaidmedia)
+"""),
+(:createChatSubscriptionInviteLink, """
+	createChatSubscriptionInviteLink([tg::TelegramClient]; kwargs...)
+
+Use this method to create a subscription invite link for a channel chat. Returns a ChatInviteLink object on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel (in the format `@channelusername`)
+
+# Optional arguments
+- `subscription_period`: (Integer) The number of seconds the subscription will be valid for before the next payment should be done
+- `subscription_price`: (Integer) The amount of Telegram Stars that the user must pay to join the chat using the link
+- `name`: (String) Invite link name; 0-32 characters
+
+[Function documentation source](https://core.telegram.org/bots/api#createchatsubscriptioninvitelink)
+"""),
+(:editChatSubscriptionInviteLink, """
+	editChatSubscriptionInviteLink([tg::TelegramClient]; kwargs...)
+
+Use this method to edit a subscription invite link for a channel chat. Returns a ChatInviteLink object on success.
+
+# Required arguments
+- `invite_link`: (String) The invite link to edit
+
+# Optional arguments
+- `subscription_period`: (Integer) The number of seconds the subscription will be valid for before the next payment should be done
+- `subscription_price`: (Integer) The amount of Telegram Stars that the user must pay to join the chat using the link
+- `name`: (String) Invite link name; 0-32 characters
+
+[Function documentation source](https://core.telegram.org/bots/api#editchatsubscriptioninvitelink)
+"""),
+(:setUserEmojiStatus, """
+	setUserEmojiStatus([tg::TelegramClient]; kwargs...)
+
+Use this method to change the emoji status for a user. Returns True on success.
+
+# Optional arguments
+- `user_id`: (Integer) Unique identifier of the target user
+- `emoji_status_custom_emoji_id`: (String) Custom emoji identifier of the emoji status
+
+[Function documentation source](https://core.telegram.org/bots/api#setuseremojistatus)
+"""),
+(:verifyUser, """
+	verifyUser([tg::TelegramClient]; kwargs...)
+
+Use this method to verify a user's identity. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `bot_id`: (Integer) Unique identifier of the target bot
+
+[Function documentation source](https://core.telegram.org/bots/api#verifyuser)
+"""),
+(:verifyChat, """
+	verifyChat([tg::TelegramClient]; kwargs...)
+
+Use this method to verify a chat. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
+
+[Function documentation source](https://core.telegram.org/bots/api#verifychat)
+"""),
+(:removeUserVerification, """
+	removeUserVerification([tg::TelegramClient]; kwargs...)
+
+Use this method to remove verification from a user. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+[Function documentation source](https://core.telegram.org/bots/api#removeuserverification)
+"""),
+(:removeChatVerification, """
+	removeChatVerification([tg::TelegramClient]; kwargs...)
+
+Use this method to remove verification from a chat. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target supergroup (in the format `@supergroupusername`)
+
+[Function documentation source](https://core.telegram.org/bots/api#removechatverification)
+"""),
+(:editUserStarSubscription, """
+	editUserStarSubscription([tg::TelegramClient]; kwargs...)
+
+Use this method to edit a subscription to a user in Telegram Stars. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `telegram_payment_charge_id`: (String) Telegram payment identifier
+- `is_canceled`: (Boolean) Pass True to cancel the subscription
+
+[Function documentation source](https://core.telegram.org/bots/api#edituserstarsubscription)
+"""),
+(:savePreparedInlineMessage, """
+	savePreparedInlineMessage([tg::TelegramClient]; kwargs...)
+
+Use this method to save a message in the user's Telegram account and get a unique identifier for it. Returns the identifier of the saved message on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `result_id`: (String) Unique identifier for the result to be used
+- `button`: (InlineKeyboardButton) An inline keyboard button to be attached to the message
+
+[Function documentation source](https://core.telegram.org/bots/api#savepreparedinlinemessage)
+"""),
+(:getAvailableGifts, """
+	getAvailableGifts([tg::TelegramClient]; kwargs...)
+
+Use this method to get the list of available gifts. Returns an Array of Gift objects on success.
+
+# Function documentation source](https://core.telegram.org/bots/api#getavailablegifts)
+"""),
+(:sendGift, """
+	sendGift([tg::TelegramClient]; kwargs...)
+
+Use this method to send a gift to a user. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+- `gift_id`: (String) Unique identifier of the gift
+
+# Optional arguments
+- `text`: (String) Text to be sent along with the gift
+- `text_parse_mode`: (String) Mode for parsing entities in the gift message text
+
+[Function documentation source](https://core.telegram.org/bots/api#sendgift)
+"""),
+(:giftPremiumSubscription, """
+	giftPremiumSubscription([tg::TelegramClient]; kwargs...)
+
+Use this method to gift a Telegram Premium subscription to a user. Returns True on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `star_count`: (Integer) The number of Telegram Stars that the user must pay to get the subscription
+- `business_connection_id`: (String) Unique identifier of the business connection
+
+[Function documentation source](https://core.telegram.org/bots/api#giftpremiumsubscription)
+"""),
+(:getUserProfileAudios, """
+	getUserProfileAudios([tg::TelegramClient]; kwargs...)
+
+Use this method to get a list of profile audios for a user. Returns a UserProfileAudios object.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `offset`: (Integer) Sequential number of the first audio to be returned. By default, all audios are returned.
+- `limit`: (Integer) Limits the number of audios to be retrieved. Values between 1-100 are accepted. Defaults to 100.
+
+[Function documentation source](https://core.telegram.org/bots/api#getuserprofileaudios)
+"""),
+(:setMyProfilePhoto, """
+	setMyProfilePhoto([tg::TelegramClient]; kwargs...)
+
+Use this method to set a new profile photo for the bot. Returns True on success.
+
+# Required arguments
+- `photo`: (InputProfilePhoto) The new profile photo to set
+
+[Function documentation source](https://core.telegram.org/bots/api#setmyprofilephoto)
+"""),
+(:removeMyProfilePhoto, """
+	removeMyProfilePhoto([tg::TelegramClient]; kwargs...)
+
+Use this method to remove the profile photo of the bot. Requires no parameters. Returns True on success.
+
+[Function documentation source](https://core.telegram.org/bots/api#removemyprofilephoto)
+"""),
+(:approveSuggestedPost, """
+	approveSuggestedPost([tg::TelegramClient]; kwargs...)
+
+Use this method to approve a suggested post in a direct messages chat. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target direct messages chat
+- `message_id`: (Integer) Identifier of a suggested post message to approve
+
+# Optional arguments
+- `send_date`: (Integer) Point in time (Unix timestamp) when the post is expected to be published
+
+[Function documentation source](https://core.telegram.org/bots/api#approvesuggestedpost)
+"""),
+(:declineSuggestedPost, """
+	declineSuggestedPost([tg::TelegramClient]; kwargs...)
+
+Use this method to decline a suggested post in a direct messages chat. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target direct messages chat
+- `message_id`: (Integer) Identifier of a suggested post message to decline
+
+# Optional arguments
+- `comment`: (String) Comment for the creator of the suggested post
+
+[Function documentation source](https://core.telegram.org/bots/api#declinesuggestedpost)
+"""),
+(:getUserGifts, """
+	getUserGifts([tg::TelegramClient]; kwargs...)
+
+Use this method to get a list of gifts owned by a user. Returns a OwnedGifts object on success.
+
+# Required arguments
+- `user_id`: (Integer) Unique identifier of the target user
+
+# Optional arguments
+- `exclude_unsaved`: (Boolean) Pass True to exclude gifts that aren't saved to the account's profile page
+- `exclude_saved`: (Boolean) Pass True to exclude gifts that are saved to the account's profile page
+- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
+- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
+- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
+- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain
+- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
+- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date
+- `offset`: (String) Offset of the first entry to return
+- `limit`: (Integer) The maximum number of gifts to be returned; 1-100
+
+[Function documentation source](https://core.telegram.org/bots/api#getusergifts)
+"""),
+(:getChatGifts, """
+	getChatGifts([tg::TelegramClient]; kwargs...)
+
+Use this method to get a list of gifts owned by a chat. Returns a OwnedGifts object on success.
+
+# Required arguments
+- `chat_id`: (Integer or String) Unique identifier for the target chat or username of the target channel
+
+# Optional arguments
+- `exclude_unsaved`: (Boolean) Pass True to exclude gifts that aren't saved to the chat's profile page
+- `exclude_saved`: (Boolean) Pass True to exclude gifts that are saved to the chat's profile page
+- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
+- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
+- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
+- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain
+- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
+- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date
+- `offset`: (String) Offset of the first entry to return
+- `limit`: (Integer) The maximum number of gifts to be returned; 1-100
+
+[Function documentation source](https://core.telegram.org/bots/api#getchatgifts)
+"""),
+(:getBusinessAccountGifts, """
+	getBusinessAccountGifts([tg::TelegramClient]; kwargs...)
+
+Use this method to get the gifts received and owned by a managed business account. Returns a OwnedGifts object on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+
+# Optional arguments
+- `exclude_unsaved`: (Boolean) Pass True to exclude gifts that aren't saved to the account's profile page
+- `exclude_saved`: (Boolean) Pass True to exclude gifts that are saved to the account's profile page
+- `exclude_unlimited`: (Boolean) Pass True to exclude gifts that can be purchased an unlimited number of times
+- `exclude_limited_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can be upgraded to unique
+- `exclude_limited_non_upgradable`: (Boolean) Pass True to exclude gifts that can be purchased a limited number of times and can't be upgraded to unique
+- `exclude_from_blockchain`: (Boolean) Pass True to exclude gifts that were assigned from the TON blockchain
+- `exclude_unique`: (Boolean) Pass True to exclude unique gifts
+- `sort_by_price`: (Boolean) Pass True to sort results by gift price instead of send date
+- `offset`: (String) Offset of the first entry to return
+- `limit`: (Integer) The maximum number of gifts to be returned; 1-100
+
+[Function documentation source](https://core.telegram.org/bots/api#getbusinessaccountgifts)
+"""),
+(:sendMessageDraft, """
+	sendMessageDraft([tg::TelegramClient]; kwargs...)
+
+Use this method to stream a partial message to a user while the message is being generated; supported only for bots with forum topic mode enabled. Returns True on success.
+
+# Required arguments
+- `chat_id`: (Integer) Unique identifier for the target private chat
+- `message_thread_id`: (Integer) Unique identifier for the target message thread
+- `draft_id`: (Integer) Unique identifier of the message draft
+- `text`: (String) Text of the message to be sent
+
+# Optional arguments
+- `parse_mode`: (String) Mode for parsing entities in the message text
+- `entities`: (Array of MessageEntity) A JSON-serialized list of special entities that appear in message text
+
+[Function documentation source](https://core.telegram.org/bots/api#sendmessagedraft)
+"""),
+(:repostStory, """
+	repostStory([tg::TelegramClient]; kwargs...)
+
+Use this method to repost a story on behalf of a business account from another business account. Returns Story on success.
+
+# Required arguments
+- `business_connection_id`: (String) Unique identifier of the business connection
+- `from_chat_id`: (Integer) Unique identifier of the chat which posted the story
+- `from_story_id`: (Integer) Unique identifier of the story that should be reposted
+- `active_period`: (Integer) Period after which the story is moved to the archive
+
+# Optional arguments
+- `post_to_chat_page`: (Boolean) Pass True to keep the story accessible after it expires
+- `protect_content`: (Boolean) Pass True if the content of the story must be protected from forwarding and screenshotting
+
+[Function documentation source](https://core.telegram.org/bots/api#repoststory)
+""")
 ]

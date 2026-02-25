@@ -1,9 +1,15 @@
 module TestTelegram
 using Test
 
+# Include TestHelpers module
+include("TestHelpers.jl")
+
 for file in sort([file for file in readdir(@__DIR__) if
                                    occursin(r"^test[_0-9]+.*\.jl$", file)])
     m = match(r"test([0-9]+)_(.*).jl", file)
+    if m === nothing
+        continue
+    end
     filename = String(m[2])
     testnum = string(parse(Int, m[1]))
 
