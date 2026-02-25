@@ -23,6 +23,10 @@ include("api_versions/v72.jl")
 include("api_versions/v73.jl")
 include("api_versions/v74_75.jl")
 include("api_versions/v76_77.jl")
+include("api_versions/v78.jl")
+include("api_versions/v79.jl")
+include("api_versions/v710.jl")
+include("api_versions/v711.jl")
 using .V70
 using .V72
 using .V73
