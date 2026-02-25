@@ -669,4 +669,58 @@ end
     end
 end
 
+# RF-041: API 9.x-Additional methods
+@testset "API 9.x Additional Methods" begin
+    @testset "getMyName" begin
+        @testset "successful getMyName" begin
+            responses = Dict("getMyName" => Dict("first_name" => "Test Bot", "last_name" => "Bot"))
+            tg = MockClient("test_token"; responses = responses)
+            result = getMyName(tg)
+            @test result["first_name"] == "Test Bot"
+            @test result["last_name"] == "Bot"
+        end
+    end
+
+    @testset "setMyName" begin
+        @testset "successful setMyName" begin
+            responses = Dict("setMyName" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMyName(tg; first_name = "Updated", last_name = "Bot")
+            @test result == true
+        end
+
+        @testset "setMyName with only first_name" begin
+            responses = Dict("setMyName" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMyName(tg; first_name = "Updated")
+            @test result == true
+        end
+    end
+
+    @testset "getMyDescription" begin
+        @testset "successful getMyDescription" begin
+            responses = Dict("getMyDescription" => Dict("description" => "Test bot description"))
+            tg = MockClient("test_token"; responses = responses)
+            result = getMyDescription(tg)
+            @test result["description"] == "Test bot description"
+        end
+    end
+
+    @testset "setMyDescription" begin
+        @testset "successful setMyDescription" begin
+            responses = Dict("setMyDescription" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMyDescription(tg; description = "Updated description")
+            @test result == true
+        end
+
+        @testset "setMyDescription with empty string" begin
+            responses = Dict("setMyDescription" => true)
+            tg = MockClient("test_token"; responses = responses)
+            result = setMyDescription(tg; description = "")
+            @test result == true
+        end
+    end
+end
+
 end # module
