@@ -31,13 +31,24 @@ include("api_versions/v80.jl")
 include("api_versions/v81.jl")
 include("api_versions/v82.jl")
 include("api_versions/v83.jl")
-using .V70
-using .V72
-using .V73
-using .V74_75
-using .V76_77
-using .V80
-using .V82
+include("api_versions/v90.jl")
+include("api_versions/v91.jl")
+include("api_versions/v92.jl")
+include("api_versions/v93.jl")
+include("api_versions/v94.jl")
+
+using .V70, .V72, .V73, .V74_75, .V76_77, .V78, .V79, .V710, .V711
+using .V80, .V81, .V82, .V83
+using .V90, .V91, .V92, .V93, .V94
+
+# Global Exports for all API versions
+for mod in [V70, V72, V73, V74_75, V76_77, V78, V79, V710, V711, V80, V81, V82, V83, V90, V91, V92, V93, V94]
+    for sym in names(mod)
+        if sym != Symbol(mod)
+            @eval export $sym
+        end
+    end
+end
 
 include("logging.jl")
 include("bot.jl")
