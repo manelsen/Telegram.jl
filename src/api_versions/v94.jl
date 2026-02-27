@@ -13,43 +13,21 @@ API 9.4 adds:
 """
 module V94
 using ...Telegram
-using ...Telegram.API
+using ...Telegram: @api_method
 
-"""
+@api_method setMyProfilePhoto """
     setMyProfilePhoto([client]; photo)
-
-Use this method to set the bot's profile photo. 
-Returns True on success.
-
-# Arguments
-- `photo`: InputProfilePhoto
+Sets the bot's profile photo. Returns True on success.
 """
-function setMyProfilePhoto(client::TelegramClient = DEFAULT_OPTS.client; kwargs...)
-    query(client, "setMyProfilePhoto", Dict{Symbol, Any}(kwargs))
-end
 
-"""
+@api_method removeMyProfilePhoto """
     removeMyProfilePhoto([client])
-
-Use this method to remove the bot's profile photo. 
-Returns True on success.
+Removes the bot's profile photo.
 """
-function removeMyProfilePhoto(client::TelegramClient = DEFAULT_OPTS.client; kwargs...)
-    query(client, "removeMyProfilePhoto", Dict{Symbol, Any}(kwargs))
-end
 
-"""
+@api_method getUserProfileAudios """
     getUserProfileAudios([client]; user_id; kwargs...)
-
-Use this method to get a list of profile audios of a user. 
-Returns UserProfileAudios on success.
-
-# Arguments
-- `user_id`: User identifier
+Retrieves a list of profile audios of a user.
 """
-function getUserProfileAudios(client::TelegramClient = DEFAULT_OPTS.client; kwargs...)
-    query(client, "getUserProfileAudios", Dict{Symbol, Any}(kwargs))
-end
 
-export setMyProfilePhoto, removeMyProfilePhoto, getUserProfileAudios
-end
+end # module
