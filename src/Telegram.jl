@@ -13,10 +13,14 @@ import Base.CoreLogging:
 include("decision_support.jl")
 
 export TelegramClient, useglobally!, TelegramLogger, run_bot
+export onboard, doctor
 
 include("client.jl")
 include("api.jl")
 using .API
+
+include("cli.jl")
+using .CLI
 
 include("api_versions/v70.jl")
 include("api_versions/v72.jl")
