@@ -1,55 +1,65 @@
-```@meta
-CurrentModule = Telegram
-```
+# Telegram.jl
 
-# Telegram
-Simple [Telegram Messaging](https://telegram.org/) SDK with logging and bot facilities. Package was built with first-class support of telegram as instant message backend for various notification and reporing systems. So, simpliest way to use this package is by doing something like this
+**The Ultimate Julia SDK for the Telegram Bot API.**
 
-Put your credentials in `.env` file
+`Telegram.jl` provides a high-level, idiomatic, and modern interface for interacting with
+Telegram. It is designed to offer the best possible Developer Experience (DX) while maintaining
+high performance and strict adherence to security and traceability standards.
 
-```
-# .env
-TELEGRAM_BOT_TOKEN = <YOUR TELEGRAM BOT TOKEN>
-TELEGRAM_BOT_CHAT_ID = <YOUR TELEGRAM CHAT ID>
-```
+## ✨ Key Features
+
+- **🚀 Modern API:** Full support for Telegram Bot API 7, 8, and 9 (including Stars, Business, and Reactions).
+- **🛸 Zero Boilerplate:** Uses Julia's powerful metaprogramming and macros to simplify your code.
+- **🛡️ Decision Support:** Built-in traceability (DS-001) and integrity (DS-003) for auditing and compliance.
+- **⚡ High Performance:** Powered by `HTTP.jl` and `JSON3.jl` for fast, non-blocking asynchronous operations.
+- **☁️ DX at its Peak:** Elegant, declarative bot development using `@bot_command`.
+
+---
+
+## 🚀 Quick Start
+
+To begin your Telegram journey in Julia:
 
 ```julia
 using Telegram, Telegram.API
-using ConfigEnv
 
-dotenv()
+# 1. Configure your client
+client = TelegramClient("YOUR_BOT_TOKEN")
+useglobally!(client)
 
-# Some lengthy calculation
-# ...
+# 2. Start your bot with zero boilerplate
+run_bot() do msg
+    @bot_command "/start" msg begin
+        sendMessage(text="Welcome to the future of Telegram SDKs! 🚀")
+    end
 
-sendMessage(text  = "Calculation complete, result is $result")
+    @bot_command "/info" msg begin
+        me = getMe()
+        sendMessage(text="I am $(me.first_name) (@$(me.username))")
+    end
+end
 ```
 
-Of course you can manually provide secrets with the `TelegramClient` constructor
+---
+
+## 🛠️ Installation
+
+You can install `Telegram.jl` using the Julia package manager:
 
 ```julia
-tg = TelegramClient("your token"; chat_id = "your default chat_id")
-sendMessage(text = "Calculation complete")
+using Pkg; Pkg.add("Telegram")
 ```
 
-or even
+Or by entering the Pkg REPL mode (type `]`) and running:
 
-```julia
-sendMessage(tg; text = "Calculation complete")
+```bash
+pkg> add Telegram
 ```
 
-## Installation
-Package is registered so you can install it in a usual way
+---
 
-```julia
-julia> using Pkg
-julia> Pkg.add("Telegram")
-```
+## 📖 Explore More
 
-## General methods
-
-In addition to [API Reference](@ref) methods, there is a number of methods which add some julian functionality like bots and logging facilities.
-
-```@autodocs
-Modules = [Telegram]
-```
+- [Usage Guide](usage.md): Deep dive into sending messages, media, and managing chats.
+- [API Reference](reference.md): Full list of functions and types.
+- [Developer Guide](developers.md): How to contribute and extend the SDK.
