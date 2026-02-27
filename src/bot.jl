@@ -1,4 +1,21 @@
 """
+    @bot_command command msg body
+
+A high-level macro for declarative command handling.
+Checks if a message exists, contains text, and starts with the specified command.
+"""
+macro bot_command(command, msg, body)
+    return quote
+        if haskey($(esc(msg)), :message) && haskey($(esc(msg)).message, :text)
+            text = $(esc(msg)).message.text
+            if startswith(text, $command)
+                $(esc(body))
+            end
+        end
+    end
+end
+
+"""
     run_bot(f::Function, [tg::TelegramClient]; timeout = 10, brute_force_alive = false, offset = -1)
 
 Run telegram bot, which executes function `f` repeatedly.
