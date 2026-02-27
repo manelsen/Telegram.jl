@@ -1,3 +1,23 @@
+"""
+    @api_method name docstring
+
+Macro for maintainers to generate Telegram API methods with zero boilerplate.
+Automatically handles global defaults (chat_id, parse_mode) and client management.
+"""
+macro api_method(name, doc)
+    method_name = string(name)
+    return quote
+        @doc $doc
+        function $(esc(name))(client::TelegramClient = DEFAULT_OPTS.client; kwargs...)
+            params = Dict{Symbol, Any}(kwargs)
+            params[:chat_id] = get(params, :chat_id, chatid(client))
+            params[:parse_mode] = get(params, :parse_mode, client.parse_mode)
+            query(client, $method_name, params = params)
+        end
+        export $(esc(name))
+    end
+end
+
 struct TelegramError{T} <: Exception
     msg::T
 end
