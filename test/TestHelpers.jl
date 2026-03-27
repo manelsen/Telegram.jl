@@ -5,7 +5,7 @@ using Telegram.DecisionSupport
 using Test
 using JSON3
 
-export MockClient, success_response, error_response
+export MockClient, FixtureClient, success_response, error_response
 export get_me_response, get_updates_response, send_message_response, set_chat_title_response
 export validate_uuid_format, validate_timestamp_utc_format, validate_iso8601_format
 export extract_request_id_from_params, extract_timestamp_from_params
@@ -63,6 +63,98 @@ function MockClient(token::String = "test_token"; responses::Dict = Dict{String,
 
     return TelegramClient(token; query_func = query_func, kwargs...)
 end
+
+"""
+    FixtureClient(; fixtures_dir::String = joinpath(@__DIR__, "fixtures"))
+
+Create a TelegramClient that loads responses from local JSON fixture files.
+
+# Arguments
+- `fixtures_dir::String`: Directory containing JSON fixture files. Defaults to `test/fixtures`.
+
+# Returns
+- `TelegramClient`: A client that returns fixture data for API methods.
+
+# Description
+The FixtureClient maps API method names to JSON files in the fixtures directory.
+Files are loaded on-demand when the corresponding API method is called.
+
+Supported naming conventions:
+  - `methodName.json` → exact method match
+  - `methodName_suffix.json` → match by prefix (useful for variants like `sendDice_🎲`)  
+  - `sendMessage.json` → matches `sendMessage` calls
+"""
+function FixtureClient(; fixtures_dir::String = joinpath(@__DIR__, "fixtures"))
+    query_func = (client, method, params) -> begin
+        # Try exact match first
+        exact_path = joinpath(fixtures_dir, "$method.json")
+
+        if isfile(exact_path)
+            data = JSON3.read(read(exact_path, String))
+            return _parse_fixture(data)
+        end
+
+        # Try prefix match for method with parameters (e.g., sendDice_🎲)
+        for suffix in keys(_known_suffixes)
+            test_path = joinpath(fixtures_dir, "$method$suffix.json")
+            if isfile(test_path)
+                data = JSON3.read(read(test_path, String))
+                return _parse_fixture(data)
+            end
+        end
+
+        # Try any file starting with method name
+        for file in readdir(fixtures_dir)
+            if startswith(file, "$method") && endswith(file, ".json")
+                data = JSON3.read(read(joinpath(fixtures_dir, file), String))
+                return _parse_fixture(data)
+            end
+        end
+
+        # No fixture found - return error or default
+        @warn "No fixture found for method: $method" path=exact_path
+        return Dict("ok" => true, "result" => Dict{String, Any}())
+    end
+
+    return TelegramClient("fixture_token"; query_func = query_func, enable_traceability = false)
+end
+
+"""
+    _parse_fixture(data)
+
+Parse fixture data, handling both wrapped (with ok/result) and unwrapped formats.
+"""
+function _parse_fixture(data)
+    # If data has "ok" and "result" keys (Telegram API response format)
+    if haskey(data, "ok") && haskey(data, "result")
+        return data["result"]
+    end
+
+    # If data is an array, return as-is
+    if data isa AbstractArray
+        return data
+    end
+
+    # Otherwise return the whole data
+    return data
+end
+
+"""
+    _known_suffixes
+
+Known suffixes for method variants.
+"""
+const _known_suffixes = Dict(
+    "_🎲" => "dice_emoji",
+    "_🎯" => "dice_emoji",
+    "_🏀" => "dice_emoji",
+    "_⚽" => "dice_emoji",
+    "_🎳" => "dice_emoji",
+    "_🎰" => "dice_emoji",
+    "_HTML" => "parse_mode",
+    "_Markdown" => "parse_mode",
+    "_Collection" => "batch",
+)
 
 """
     success_response(data::Dict)

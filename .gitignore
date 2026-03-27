@@ -4,4 +4,6 @@
 /docs/build/
 Manifest.toml
 experiments*.jl
+.env
 *.json
+!test/fixtures/*.json
