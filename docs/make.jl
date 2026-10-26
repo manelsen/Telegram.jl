@@ -4,12 +4,11 @@ using Documenter
 makedocs(;
     modules=[Telegram],
     authors="Andrey Oskin",
-    repo="https://github.com/Arkoniak/Telegram.jl/blob/{commit}{path}#L{line}",
+    repo="https://github.com/manelsen/Telegram.jl/blob/{commit}{path}#L{line}",
     sitename="Telegram.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://Arkoniak.github.io/Telegram.jl",
-        siteurl="https://github.com/Arkoniak/Telegram.jl",
+        canonical="https://manelsen.github.io/Telegram.jl",
         assets=String[],
     ),
     pages=[
@@ -20,6 +19,9 @@ makedocs(;
     ],
 )
 
-deploydocs(;
-    repo="github.com/Arkoniak/Telegram.jl",
-)
+# Building docs in CI never grants deployment authority by itself.
+if get(ENV, "DEPLOY_DOCS", "false") == "true"
+    deploydocs(;
+        repo="github.com/manelsen/Telegram.jl",
+    )
+end

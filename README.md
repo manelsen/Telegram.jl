@@ -27,12 +27,17 @@ julia> using Pkg
 julia> Pkg.add("Telegram")
 ```
 
-## Security and compatibility (development branch)
+## Security and compatibility
 
-This branch requires **Julia 1.10 or newer** and **HTTP.jl 2.4 or newer**.
+The `master` branch requires **Julia 1.10 or newer** and **HTTP.jl 2.4 or newer**.
 The minimum versions were raised to exclude HTTP.jl releases affected by
 published security advisories. Installing an older registered Telegram.jl
 release does not automatically apply these source changes.
+
+The [`julia-1.9`](https://github.com/manelsen/Telegram.jl/tree/julia-1.9)
+branch preserves the former Julia/HTTP.jl compatibility range for legacy use;
+it does **not** include these security hardening patches and should not be used
+for new deployments requiring current security fixes.
 
 Requests use HTTPS by default, do not follow HTTP redirects, and avoid
 including bot tokens in transport error messages or displayed clients.

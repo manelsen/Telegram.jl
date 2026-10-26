@@ -53,6 +53,3 @@ jobs:
           Pkg.develop(PackageSpec(; path=pwd()));
           Pkg.instantiate();'
       - run: julia --project=docs docs/make.jl
-        env:
-          # Never expose the deployment key to pull-request code.
-          DOCUMENTER_KEY: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.DOCUMENTER_KEY || '' }}
