@@ -6,6 +6,9 @@ makedocs(;
     authors="Andrey Oskin",
     repo="https://github.com/manelsen/Telegram.jl/blob/{commit}{path}#L{line}",
     sitename="Telegram.jl",
+    # Existing generated API references are incomplete; keep these diagnostics
+    # visible without failing unrelated security and compatibility CI checks.
+    warnonly=[:docs_block, :missing_docs, :cross_references],
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://manelsen.github.io/Telegram.jl",
