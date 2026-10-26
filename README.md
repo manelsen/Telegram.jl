@@ -27,6 +27,26 @@ julia> using Pkg
 julia> Pkg.add("Telegram")
 ```
 
+## Security and compatibility (development branch)
+
+This branch requires **Julia 1.10 or newer** and **HTTP.jl 2.4 or newer**.
+The minimum versions were raised to exclude HTTP.jl releases affected by
+published security advisories. Installing an older registered Telegram.jl
+release does not automatically apply these source changes.
+
+Requests use HTTPS by default, do not follow HTTP redirects, and avoid
+including bot tokens in transport error messages or displayed clients.
+Custom plain-HTTP endpoints are rejected unless explicitly allowed. For a
+trusted local Bot API server, opt in deliberately:
+
+```julia
+tg = TelegramClient(ENV["TELEGRAM_BOT_TOKEN"];
+                    ep = "http://127.0.0.1:8081/bot",
+                    allow_insecure_http = true)
+```
+
+Never use this opt-in with an untrusted or remote plaintext endpoint.
+
 # Usage
 
 ## Telegram Bot API

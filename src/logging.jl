@@ -6,6 +6,8 @@ struct TelegramLogger <: AbstractLogger
     silent_errors::Bool
 end
 
+const SENSITIVE_LOG_KEY = r"(token|secret|password|authorization|api[_-]?key|cookie|credential)"i
+
 """
     TelegramLogger(tg::TelegramClient; fmt = tg_formatter,
                    min_level = Logging.Info, async = true)
@@ -18,6 +20,9 @@ Creates logger, which output log messages to Telegram channel.
 - `min_level`: minimum level of log messages which is going to be processed.
 - `async`: send messages in `sync` or `async` mode. Since telegram messages can take some time to be send, it make sense to set this parameter to `true`, so messages is send in the background with little impact on main program. But since in one run scripts main julia process can be finished before async message is sent, it make sense to set this parameter to `false`
 - `silent_errors`: by default, if there was an error during sending a message, it will be printed in `stderr` channel. If you want to silence this output, set `silent_errors` to `true`.
+
+Keyword fields whose names suggest credentials are redacted before being sent.
+Free-form log messages are not automatically sanitized: never log secrets in them.
 """
 function TelegramLogger(tg::TelegramClient; fmt = tg_formatter, min_level = Info, async = true, silent_errors = false)
     return TelegramLogger(tg, fmt, min_level, async, silent_errors)
@@ -34,7 +39,8 @@ function handle_message(tglogger::TelegramLogger, level, message, _module, group
     prefix = tg_formatter(level, _module, group, id, filepath, line)
     print(iob, prefix, string(message))
     for (key, val) in kwargs
-        print(iob, key, " = ", val)
+        print(iob, key, " = ",
+              occursin(SENSITIVE_LOG_KEY, string(key)) ? "[REDACTED]" : val)
     end
     text = String(take!(iob))
     if tglogger.async

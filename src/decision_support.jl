@@ -4,6 +4,7 @@ using UUIDs
 using Dates
 using SHA
 using JSON3
+using HTTP
 
 export generate_request_id, generate_operation_id, generate_timestamp_utc
 export add_notification_metadata, datetime_to_iso8601, validate_https_enforced
@@ -95,8 +96,12 @@ Validate that HTTPS is enforced for the given URL.
 - `Bool`: True if HTTPS is enforced, false otherwise
 """
 function validate_https_enforced(url::String)
-    # Check if URL starts with https://
-    return startswith(lowercase(url), "https://")
+    uri = try
+        HTTP.URI(url)
+    catch
+        return false
+    end
+    return lowercase(uri.scheme) == "https" && !isempty(uri.host)
 end
 
 """

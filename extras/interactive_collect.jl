@@ -103,32 +103,38 @@ function _anonimizar_recursivo(obj)
     if obj isa AbstractDict
         new_dict = Dict{Symbol, Any}()
         for (k, v) in obj
-            k_sym = Symbol(k)
-            if k in ["id", "chat_id", "user_id", "message_id"]
+            key = String(k)  # JSON3.Object keys are Symbols, not Strings.
+            k_sym = Symbol(key)
+            if key in ["id", "chat_id", "user_id", "message_id", "update_id"]
                 new_dict[k_sym] = 12345678
-            elseif k in ["first_name", "firstName"]
+            elseif key in ["chat_instance", "inline_message_id", "business_connection_id"]
+                new_dict[k_sym] = "ANONYMIZED_IDENTIFIER"
+            elseif key in ["first_name", "firstName"]
                 new_dict[k_sym] = "AnonymizedUser"
-            elseif k in ["last_name", "lastName"]
+            elseif key in ["last_name", "lastName"]
                 new_dict[k_sym] = "Name"
-            elseif k in ["username"]
+            elseif key in ["username"]
                 new_dict[k_sym] = "anonymized_bot"
-            elseif k in ["title"]
+            elseif key in ["title"]
                 new_dict[k_sym] = "Anonymized Chat Title"
-            elseif k in ["text", "caption"]
+            elseif key in ["text", "caption", "question", "explanation", "bio",
+                           "description", "short_description", "data"]
                 new_dict[k_sym] = "Anonymized message content"
-            elseif k in ["phone_number", "phoneNumber"]
+            elseif key in ["phone_number", "phoneNumber"]
                 new_dict[k_sym] = "+5511999999999"
-            elseif k in ["latitude"]
+            elseif key == "email"
+                new_dict[k_sym] = "anonymous@example.com"
+            elseif key in ["latitude"]
                 new_dict[k_sym] = 0.0
-            elseif k in ["longitude"]
+            elseif key in ["longitude"]
                 new_dict[k_sym] = 0.0
-            elseif k in ["file_id", "fileId"]
+            elseif key in ["file_id", "fileId"]
                 new_dict[k_sym] = "FILE_ID_ANONYMIZED_REDACTED"
-            elseif k in ["file_unique_id", "fileUniqueId"]
+            elseif key in ["file_unique_id", "fileUniqueId"]
                 new_dict[k_sym] = "FILE_UNIQUE_ID_REDACTED"
-            elseif k in ["address", "vcard"]
+            elseif key in ["address", "vcard", "file_path", "invite_link"]
                 new_dict[k_sym] = "Anonymized Data"
-            elseif k in ["url", "link"]
+            elseif key in ["url", "link"]
                 new_dict[k_sym] = "https://example.com/anonymized"
             else
                 new_dict[k_sym] = _anonimizar_recursivo(v)
@@ -502,7 +508,8 @@ function main()
     - Ver instruções detalhadas do que fazer no Telegram
     
     Dados coletados serão salvos em: test/fixtures/
-    Todos os dados pessoais serão anonimizados automaticamente.
+    Os campos pessoais conhecidos serão anonimizados automaticamente.
+    Revise as fixtures antes de publicá-las, especialmente campos novos da API.
     """)
     
     # Verifica credenciais
@@ -519,12 +526,12 @@ function main()
         return 1
     end
     
-    println("  ✓ Token encontrado: $(token[1:min(end,10)])...")
+    println("  ✓ Token encontrado no ambiente.")
     
     # Detecta chat_id automaticamente
     println("\n  🔍 Detectando chat_id automaticamente...")
     try
-PQ:        tg = TelegramClient(token; use_globally=false, enable_traceability=false)
+        tg = TelegramClient(token; use_globally=false, enable_traceability=false)
         # Faz uma chamada dummy para detectar chat
         me = getMe(tg)
         print_success("Bot conectado: @$(me.username)")

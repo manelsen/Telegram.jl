@@ -17,7 +17,7 @@ Telegram.jl is a Julia SDK for the [Telegram Bot API](https://core.telegram.org/
 - **Version**: 1.1.5
 - **Author**: Andrey Oskin
 - **License**: MIT
-- **Julia Version**: ≥ 1.3
+- **Julia Version**: ≥ 1.10
 
 ---
 
@@ -356,18 +356,18 @@ end
 
 | Aspect | Value |
 |--------|-------|
-| **Runtime** | Julia ≥ 1.3 |
+| **Runtime** | Julia ≥ 1.10 |
 | **Package Manager** | Pkg (Julia's built-in) |
-| **HTTP Client** | HTTP.jl (0.8–0.9, 1.x) |
+| **HTTP Client** | HTTP.jl ≥ 2.4 (2.x) |
 | **JSON** | JSON3.jl |
-| **Documentation** | Documenter.jl (custom fork: Arkoniak/Documenter.jl) |
+| **Documentation** | Registered Documenter.jl |
 
 ### Key Dependencies
 
 ```toml
 [compat]
-julia = "1.3"
-HTTP = "0.8, 0.9, 1"
+julia = "1.10"
+HTTP = "2.4"
 JSON3 = "1"
 
 [extras]
@@ -385,7 +385,7 @@ test = ["Test"]
 
 | Workflow | Purpose |
 |----------|---------|
-| `ci.yml` | Matrix testing (Julia 1.3, nightly × Ubuntu, macOS, Windows) |
+| `ci.yml` | Matrix testing (Julia 1.10, 1.13 × Ubuntu, macOS, Windows) |
 | `CompatHelper.yml` | Daily dependency compatibility updates |
 | `TagBot.yml` | Automated version tagging for registry |
 
@@ -394,14 +394,14 @@ test = ["Test"]
 ```yaml
 strategy:
   matrix:
-    julia-version: ['1.3', 'nightly']
+    julia-version: ['1.10', '1.13']
     os: [ubuntu-latest, macos-latest, windows-latest]
     arch: [x64]
 ```
 
 ### Coverage
 
-- Integrated with Codecov via `CODECOV_TOKEN` secret
+- Integrated with Codecov via a pinned upload action
 - Coverage uploaded after CI runs
 
 ---

@@ -7,19 +7,33 @@ const ANONYM_MAP = Dict(
     :id => 12345678,
     :chat_id => 12345678,
     :user_id => 12345678,
+    :message_id => 12345678,
+    :update_id => 12345678,
+    :chat_instance => "ANONYMIZED_IDENTIFIER",
+    :inline_message_id => "ANONYMIZED_IDENTIFIER",
+    :business_connection_id => "ANONYMIZED_IDENTIFIER",
     :first_name => "AnonymizedUser",
     :last_name => "Name",
     :username => "anonymized_bot",
     :phone_number => "+5511999999999",
+    :email => "anonymous@example.com",
     :text => "Anonymized message content",
     :caption => "Anonymized caption",
+    :question => "Anonymized question",
+    :explanation => "Anonymized explanation",
+    :bio => "Anonymized biography",
+    :description => "Anonymized description",
+    :short_description => "Anonymized description",
+    :data => "Anonymized callback data",
     :latitude => 0.0,
     :longitude => 0.0,
     :file_id => "FILE_ID_ANONYMIZED_REDACTED",
     :file_unique_id => "FILE_UNIQUE_ID_REDACTED",
     :address => "Anonymized Address",
     :vcard => "Anonymized VCard Data",
-    :title => "Anonymized Chat Title"
+    :title => "Anonymized Chat Title",
+    :file_path => "Anonymized file path",
+    :invite_link => "https://example.com/anonymized"
 )
 
 function anonymize_recursive!(obj)
@@ -28,10 +42,11 @@ function anonymize_recursive!(obj)
         # Mas para simplificar, vamos converter tudo para Dict durante o processo
         new_obj = Dict{Symbol, Any}()
         for (k, v) in obj
-            if haskey(ANONYM_MAP, k)
-                new_obj[k] = ANONYM_MAP[k]
+            key = Symbol(k)
+            if haskey(ANONYM_MAP, key)
+                new_obj[key] = ANONYM_MAP[key]
             else
-                new_obj[k] = anonymize_recursive!(v)
+                new_obj[key] = anonymize_recursive!(v)
             end
         end
         return new_obj
@@ -42,24 +57,30 @@ function anonymize_recursive!(obj)
     end
 end
 
-println("Iniciando anonimização das fixtures em: $FIXTURES_DIR")
+"""Anonymize fixtures in the selected directory; explicitly invoked by the CLI."""
+function anonymize_fixtures(fixtures_dir::String = FIXTURES_DIR)
+    println("Iniciando anonimização das fixtures em: $fixtures_dir")
 
-for file in readdir(FIXTURES_DIR)
-    if endswith(file, ".json")
-        path = joinpath(FIXTURES_DIR, file)
-        try
-            data = JSON3.read(read(path, String))
-            anonymized_data = anonymize_recursive!(data)
-            
-            open(path, "w") do io
-                JSON3.write(io, anonymized_data)
+    for file in readdir(fixtures_dir)
+        if endswith(file, ".json")
+            path = joinpath(fixtures_dir, file)
+            try
+                data = JSON3.read(read(path, String))
+                anonymized_data = anonymize_recursive!(data)
+
+                open(path, "w") do io
+                    JSON3.write(io, anonymized_data)
+                end
+                println("✓ $file anonimizado com sucesso.")
+            catch e
+                @error "Falha ao processar $file" exception=e
             end
-            println("✓ $file anonimizado com sucesso.")
-        catch e
-            @error "Falha ao processar $file" exception=e
         end
     end
+
+    println("Processo concluído. Revise os campos antes de publicar fixtures.")
 end
 
-println("
-Processo concluído! Todos os dados sensíveis foram removidos.")
+if abspath(PROGRAM_FILE) == abspath(@__FILE__)
+    anonymize_fixtures()
+end

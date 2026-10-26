@@ -10,10 +10,24 @@ mutable struct TelegramClient
     query_func::Union{Function, Nothing}
     request_id::String
     enable_traceability::Bool
+    allow_insecure_http::Bool
+end
+
+# Preserve the original seven-argument positional constructor.
+TelegramClient(token::String, chat_id::String, parse_mode::String, ep::String,
+               query_func::Union{Function, Nothing}, request_id::String,
+               enable_traceability::Bool) =
+    TelegramClient(token, chat_id, parse_mode, ep, query_func, request_id,
+                   enable_traceability, false)
+
+# A bot token is a credential: displaying a client must never print it.
+function Base.show(io::IO, ::TelegramClient)
+    print(io, "TelegramClient(token=[REDACTED])")
 end
 
 """
-    TelegramClient(token; chat_id, parse_mode, ep, use_globally = true, query_func = nothing, enable_traceability = true)
+    TelegramClient(token; chat_id, parse_mode, ep, use_globally = true, query_func = nothing,
+                   enable_traceability = true, allow_insecure_http = false)
 
 Creates telegram client, which can be used to run telegram commands.
 
@@ -25,6 +39,8 @@ Creates telegram client, which can be used to run telegram commands.
 - `ep`: endpoint for telegram api. By default `https://api.telegram.org/bot` is used, but you may change it, if you are using proxy or for testing purposes.
 - `query_func`: optional custom function for making HTTP queries. Useful for testing and mocking. Function signature: `(client, method, params) -> result`.
 - `enable_traceability::Bool`: default `true`. If set to `true`, enables Decision Support traceability features (DS-001, DS-002, DS-003, DS-004, DS-005).
+- `allow_insecure_http::Bool`: default `false`. Explicit opt-in for plain HTTP endpoints,
+  such as a locally hosted Bot API server. Plain HTTP exposes the bot token in transit.
 """
 function TelegramClient(token = get(ENV, "TELEGRAM_BOT_TOKEN", "");
                      chat_id = get(ENV, "TELEGRAM_BOT_CHAT_ID" ,""),
@@ -32,9 +48,11 @@ function TelegramClient(token = get(ENV, "TELEGRAM_BOT_TOKEN", "");
                      ep = "https://api.telegram.org/bot",
                      use_globally = true,
                      query_func = nothing,
-                     enable_traceability = true)
+                     enable_traceability = true,
+                     allow_insecure_http = false)
     request_id = enable_traceability ? DecisionSupport.generate_request_id() : ""
-    client = TelegramClient(token, chat_id, parse_mode, ep, query_func, request_id, enable_traceability)
+    client = TelegramClient(token, chat_id, parse_mode, ep, query_func, request_id,
+                            enable_traceability, allow_insecure_http)
     if use_globally
         useglobally!(client)
     end
@@ -89,18 +107,55 @@ function ioify(elem::IOBuffer)
     return elem
 end
 
-pushfiles!(body, keyword, file) = push!(body, keyword => file)
+function validate_multipart_field_name(name)
+    if occursin(r"[\r\n]", string(name))
+        throw(TelegramError("Multipart field names and filenames must not contain line breaks"))
+    end
+end
+
+pushfiles!(body, keyword, file) = (validate_multipart_field_name(keyword); push!(body, keyword => file))
 function pushfiles!(body, keyword, file::Pair)
+    validate_multipart_field_name(keyword)
+    validate_multipart_field_name(file.first)
     push!(body, keyword => HTTP.Multipart(file.first, ioify(file.second)))
 end
 
 process_params(x::AbstractString) = x
 process_params(x) = JSON3.write(x)   
 
+"""Validate the destination before sending a credential-bearing request."""
+function validate_endpoint(client::TelegramClient)
+    uri = try
+        HTTP.URI(client.ep)
+    catch
+        nothing
+    end
+    uri === nothing && throw(TelegramError("Invalid Telegram API endpoint URL"))
+
+    scheme = lowercase(uri.scheme)
+    if occursin(r"[\r\n]", client.ep) || isempty(uri.host) || !isempty(uri.userinfo) ||
+       !isempty(uri.query) || !isempty(uri.fragment) ||
+       !(scheme == "https" || (scheme == "http" && client.allow_insecure_http))
+        throw(TelegramError("Telegram API endpoint must be an HTTPS URL without credentials, query, or fragment (set allow_insecure_http=true only for a trusted HTTP server)"))
+    end
+
+    return nothing
+end
+
 function query(client::TelegramClient, method; params = Dict())
     # Use custom query function if provided (useful for testing/mocking)
     if client.query_func !== nothing
         return client.query_func(client, method, params)
+    end
+
+    validate_endpoint(client)
+    bot_token = token(client)
+    if isempty(bot_token) || !occursin(r"^[A-Za-z0-9:_-]+$", bot_token)
+        throw(TelegramError("Bot token is empty or contains invalid URL characters"))
+    end
+    method_name = string(method)
+    if !occursin(r"^[A-Za-z][A-Za-z0-9_]*$", method_name)
+        throw(TelegramError("Invalid Telegram API method name"))
     end
 
     # DS-001: Traceability - Add request ID, timestamp, and schema version
@@ -110,40 +165,70 @@ function query(client::TelegramClient, method; params = Dict())
 
         # Add traceability metadata
         params = copy(params)
-        params["_request_id"] = client.request_id
-        params["_timestamp"] = DecisionSupport.datetime_to_iso8601(DecisionSupport.generate_timestamp_utc())
-        params["_schema_version"] = DecisionSupport.get_schema_version()
+        metadata_key = keytype(params) <: Symbol ? Symbol : identity
+        params[metadata_key("_request_id")] = client.request_id
+        params[metadata_key("_timestamp")] = DecisionSupport.datetime_to_iso8601(DecisionSupport.generate_timestamp_utc())
+        params[metadata_key("_schema_version")] = DecisionSupport.get_schema_version()
 
         # Log request ID (DS-001)
         @debug "Telegram API Request" method=method request_id=client.request_id
     end
 
-    # DS-003: Integrity - Validate HTTPS is enforced
-    if !DecisionSupport.validate_https_enforced(client.ep)
-        @warn "HTTPS not enforced for endpoint" endpoint=client.ep
-    end
-
-    req_uri = client.ep * token(client) * "/" * method
+    req_uri = client.ep * bot_token * "/" * method_name
     intersection = intersect(keys(params), DEFAULT_OPTS.upload_kw)
-    if isempty(intersection)
-        headers = ["Content-Type" => "application/json", "Connection" => "Keep-Alive"]
-        json_params = JSON3.write(params)
-        res = HTTP.post(req_uri, headers, json_params; readtimeout = DEFAULT_OPTS.timeout + 1)
+    headers, request_body = if isempty(intersection)
+        (["Content-Type" => "application/json", "Connection" => "Keep-Alive"],
+         JSON3.write(params))
     else
         body = Pair[]
         for (k, v) in params
             k in intersection && continue
+            validate_multipart_field_name(k)
             push!(body, k => process_params(v))
         end
         for k in intersection
             pushfiles!(body, k, params[k])
         end
-        res = HTTP.post(req_uri, ["Connection" => "Keep-Alive"], HTTP.Form(body); readtimeout = DEFAULT_OPTS.timeout + 1)
+        (["Connection" => "Keep-Alive"], HTTP.Form(body))
     end
 
-    response = JSON3.read(res.body)
+    res, transport_error = try
+        (HTTP.post(req_uri, headers, request_body;
+                   read_idle_timeout = DEFAULT_OPTS.timeout + 1,
+                   redirect = false, status_exception = false), nothing)
+    catch err
+        err isa InterruptException && rethrow()
+        # HTTP transport exceptions can contain the full request URL and bot token.
+        # Leave the catch block before throwing, to avoid logging the original cause.
+        (nothing, string(typeof(err)))
+    end
+    transport_error === nothing || throw(TelegramError("Telegram API transport failed ($transport_error); request URL withheld"))
 
-    if response.ok
+    if 300 <= res.status < 400
+        throw(TelegramError("Telegram API returned HTTP $(res.status); redirects are disabled to protect the bot token"))
+    end
+
+    response = try
+        JSON3.read(res.body)
+    catch
+        nothing
+    end
+    response === nothing && throw(TelegramError("Telegram API returned an invalid JSON response (HTTP $(res.status))"))
+
+    if !(response isa JSON3.Object)
+        throw(TelegramError("Telegram API returned an invalid JSON response shape (HTTP $(res.status))"))
+    end
+
+    ok = get(response, :ok, nothing)
+    if !(ok isa Bool)
+        throw(TelegramError("Telegram API returned JSON without a boolean 'ok' field (HTTP $(res.status))"))
+    end
+
+    if !(200 <= res.status < 300) && ok
+        throw(TelegramError("Telegram API returned unexpected HTTP $(res.status)"))
+    end
+
+    if ok
         return response.result
     else
         throw(TelegramError(response))
