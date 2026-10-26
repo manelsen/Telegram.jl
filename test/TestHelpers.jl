@@ -125,14 +125,14 @@ end
 Parse fixture data, handling both wrapped (with ok/result) and unwrapped formats.
 """
 function _parse_fixture(data)
+    # JSON3.Array does not support haskey; update collections are already results.
+    if data isa AbstractArray
+        return data
+    end
+
     # If data has "ok" and "result" keys (Telegram API response format)
     if haskey(data, "ok") && haskey(data, "result")
         return data["result"]
-    end
-
-    # If data is an array, return as-is
-    if data isa AbstractArray
-        return data
     end
 
     # Otherwise return the whole data

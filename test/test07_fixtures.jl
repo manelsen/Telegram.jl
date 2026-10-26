@@ -1,11 +1,10 @@
 using Telegram, Telegram.API
 using Test
-include("TestHelpers.jl")
-using .TestHelpers
+isdefined(@__MODULE__, :TestHelpers) || include("TestHelpers.jl")
 
 @testset "Offline Fixture Tests (Modern API 7-9)" begin
     # Initialize our Fixture-based client
-    tg = FixtureClient()
+    tg = TestHelpers.FixtureClient()
     useglobally!(tg)
 
     @testset "Metadata & Identity" begin
