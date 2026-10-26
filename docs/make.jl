@@ -12,6 +12,9 @@ makedocs(;
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://manelsen.github.io/Telegram.jl",
+        repolink="https://github.com/manelsen/Telegram.jl",
+        # The generated API reference is ~276 KiB; retain the large-page warning.
+        size_threshold=350 * 1024,
         assets=String[],
     ),
     pages=[
