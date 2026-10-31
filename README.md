@@ -144,3 +144,23 @@ run_bot() do msg
     sendMessage(text = msg.message.text, chat_id = msg.message.chat.id)
 end
 ```
+
+## Bot API 10.3 coverage
+
+This branch supports the **185 Bot API methods** documented for Telegram Bot API
+10.3 (August 24, 2026). The Julia wrappers and method documentation are
+regenerated from the pinned specification at
+[`extras/bot_api_10_3.min.json`](extras/bot_api_10_3.min.json).
+The method arguments and 400 object schemas are covered by offline parity tests.
+
+To regenerate and check for drift:
+
+```sh
+julia --project=. extras/generate_api_from_spec.jl
+julia --project=. extras/generate_api_from_spec.jl --check
+```
+
+The methods accept keyword arguments and JSON-serializable nested values, and
+return dynamic `JSON3.Object` or array results. **Model structs, comprehensive
+argument validation, and fully automatic nested file attachments are not
+provided**. This is a Bot API SDK, not a routing/middleware bot framework.
