@@ -122,7 +122,7 @@ function run(; check=false)
     )
     for (path, expected) in outputs
         if check
-            isfile(path) && read(path, String) == expected ||
+            isfile(path) && replace(read(path, String), "\r\n" => "\n") == expected ||
                 error("Generated API file out of date: " * path)
         else
             write(path, expected)
