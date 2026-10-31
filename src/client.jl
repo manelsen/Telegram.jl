@@ -114,6 +114,12 @@ function validate_multipart_field_name(name)
 end
 
 pushfiles!(body, keyword, file) = (validate_multipart_field_name(keyword); push!(body, keyword => file))
+# Some upload field names also accept structured objects (InputProfilePhoto or
+# InputSticker). HTTP.Form stringifies dictionaries unless we encode them first.
+function pushfiles!(body, keyword, value::Union{AbstractDict, NamedTuple})
+    validate_multipart_field_name(keyword)
+    push!(body, keyword => JSON3.write(value))
+end
 function pushfiles!(body, keyword, file::Pair)
     validate_multipart_field_name(keyword)
     validate_multipart_field_name(file.first)
