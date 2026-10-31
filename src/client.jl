@@ -66,7 +66,7 @@ mutable struct TelegramOpts
     timeout::Int
 end
 
-const DEFAULT_OPTS = TelegramOpts(TelegramClient(use_globally = false), [:photo, :audio, :thumb, :document, :video, :animation, :voice, :video_note, :sticker, :png_sticker, :tgs_sticker, :certificate, :files], 30)
+const DEFAULT_OPTS = TelegramOpts(TelegramClient(use_globally = false), [:photo, :audio, :thumb, :thumbnail, :cover, :live_photo, :document, :video, :animation, :voice, :video_note, :sticker, :png_sticker, :tgs_sticker, :certificate, :files], 30)
 
 """
     useglobally!(tg::TelegramClient)

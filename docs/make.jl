@@ -14,12 +14,13 @@ makedocs(;
         canonical="https://manelsen.github.io/Telegram.jl",
         repolink="https://github.com/manelsen/Telegram.jl",
         # The generated API reference is ~276 KiB; retain the large-page warning.
-        size_threshold=350 * 1024,
+        size_threshold=2 * 1024 * 1024,
         assets=String[],
     ),
     pages=[
         "Home" => "index.md",
         "API Reference" => "reference.md",
+        "Object schemas" => "types.md",
         "Usage" => "usage.md",
         "Developer guide" => "developers.md"
     ],

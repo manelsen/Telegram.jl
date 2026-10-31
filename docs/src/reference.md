@@ -1,865 +1,390 @@
 ```@meta
-CurrentModule = Telegram
-```
-
-Word of caution: this documentation is generated automatically from [https://core.telegram.org/bots/api](https://core.telegram.org/bots/api) and can be incomplete or wrongly formatted. Also this documentation do not contain information about general principles of the Telegram API and response objects. So, if you have any doubts, consult original [api documentation](https://core.telegram.org/bots/api) and consider it as a ground truth. These docs were generated only for simpler navigation and better help hints in REPL and editors.
-
-Please notice that this package implements the [Bot API](https://core.telegram.org/api#bot-api). The Telegram Bot API is an API specifically for bots, which is simpler but less customisable. It acts as an intermediary between bots and the [Telegram API](https://core.telegram.org/api#telegram-api) which allow you to build your own customized Telegram clients.
-
-All API functions have [`TelegramClient`](@ref) as optional positional argument, which means that if it is not set explicitly, than global client is used, which is usually created during initial construction or by explicit call of [`useglobally!`](@ref) function.
-
-All arguments usually have `String`/`Boolean`/`Integer` types which is in one to one correspondence with julian types. Special arguments like `document`, `photo` and the like, which are intended for file sending, can accept either `IOStream` argument as in `open("picture.png", "r")` or `Pair{String, IO}` in case of in-memory `IO` objects without names. Read [Usage](@ref) for additional info.
-
-# API Reference
-
-
-
-
-## Getting updates
-
-* [`Telegram.getUpdates`](@ref)
-* [`Telegram.setWebhook`](@ref)
-* [`Telegram.deleteWebhook`](@ref)
-* [`Telegram.getWebhookInfo`](@ref)
-
-```@docs
-getUpdates
-```
-
-```@docs
-setWebhook
-```
-
-```@docs
-deleteWebhook
-```
-
-```@docs
-getWebhookInfo
-```
-
-## Available methods
-
-* [`Telegram.getMe`](@ref)
-* [`Telegram.logOut`](@ref)
-* [`Telegram.close`](@ref)
-* [`Telegram.sendMessage`](@ref)
-* [`Telegram.forwardMessage`](@ref)
-* [`Telegram.forwardMessages`](@ref)
-* [`Telegram.copyMessage`](@ref)
-* [`Telegram.copyMessages`](@ref)
-* [`Telegram.sendPhoto`](@ref)
-* [`Telegram.sendAudio`](@ref)
-* [`Telegram.sendDocument`](@ref)
-* [`Telegram.sendVideo`](@ref)
-* [`Telegram.sendAnimation`](@ref)
-* [`Telegram.sendVoice`](@ref)
-* [`Telegram.sendVideoNote`](@ref)
-* [`Telegram.sendPaidMedia`](@ref)
-* [`Telegram.sendMediaGroup`](@ref)
-* [`Telegram.sendLocation`](@ref)
-* [`Telegram.sendVenue`](@ref)
-* [`Telegram.sendContact`](@ref)
-* [`Telegram.sendPoll`](@ref)
-* [`Telegram.sendChecklist`](@ref)
-* [`Telegram.sendDice`](@ref)
-* [`Telegram.sendMessageDraft`](@ref)
-* [`Telegram.sendChatAction`](@ref)
-* [`Telegram.setMessageReaction`](@ref)
-* [`Telegram.getUserProfilePhotos`](@ref)
-* [`Telegram.getUserProfileAudios`](@ref)
-* [`Telegram.setUserEmojiStatus`](@ref)
-* [`Telegram.getFile`](@ref)
-* [`Telegram.banChatMember`](@ref)
-* [`Telegram.unbanChatMember`](@ref)
-* [`Telegram.restrictChatMember`](@ref)
-* [`Telegram.promoteChatMember`](@ref)
-* [`Telegram.setChatAdministratorCustomTitle`](@ref)
-* [`Telegram.banChatSenderChat`](@ref)
-* [`Telegram.unbanChatSenderChat`](@ref)
-* [`Telegram.setChatPermissions`](@ref)
-* [`Telegram.exportChatInviteLink`](@ref)
-* [`Telegram.createChatInviteLink`](@ref)
-* [`Telegram.editChatInviteLink`](@ref)
-* [`Telegram.createChatSubscriptionInviteLink`](@ref)
-* [`Telegram.editChatSubscriptionInviteLink`](@ref)
-* [`Telegram.revokeChatInviteLink`](@ref)
-* [`Telegram.approveChatJoinRequest`](@ref)
-* [`Telegram.declineChatJoinRequest`](@ref)
-* [`Telegram.setChatPhoto`](@ref)
-* [`Telegram.deleteChatPhoto`](@ref)
-* [`Telegram.setChatTitle`](@ref)
-* [`Telegram.setChatDescription`](@ref)
-* [`Telegram.pinChatMessage`](@ref)
-* [`Telegram.unpinChatMessage`](@ref)
-* [`Telegram.unpinAllChatMessages`](@ref)
-* [`Telegram.leaveChat`](@ref)
-* [`Telegram.getChat`](@ref)
-* [`Telegram.getChatAdministrators`](@ref)
-* [`Telegram.getChatMemberCount`](@ref)
-* [`Telegram.getChatMember`](@ref)
-* [`Telegram.setChatStickerSet`](@ref)
-* [`Telegram.deleteChatStickerSet`](@ref)
-* [`Telegram.getForumTopicIconStickers`](@ref)
-* [`Telegram.createForumTopic`](@ref)
-* [`Telegram.editForumTopic`](@ref)
-* [`Telegram.closeForumTopic`](@ref)
-* [`Telegram.reopenForumTopic`](@ref)
-* [`Telegram.deleteForumTopic`](@ref)
-* [`Telegram.unpinAllForumTopicMessages`](@ref)
-* [`Telegram.editGeneralForumTopic`](@ref)
-* [`Telegram.closeGeneralForumTopic`](@ref)
-* [`Telegram.reopenGeneralForumTopic`](@ref)
-* [`Telegram.hideGeneralForumTopic`](@ref)
-* [`Telegram.unhideGeneralForumTopic`](@ref)
-* [`Telegram.unpinAllGeneralForumTopicMessages`](@ref)
-* [`Telegram.answerCallbackQuery`](@ref)
-* [`Telegram.getUserChatBoosts`](@ref)
-* [`Telegram.getBusinessConnection`](@ref)
-* [`Telegram.setMyCommands`](@ref)
-* [`Telegram.deleteMyCommands`](@ref)
-* [`Telegram.getMyCommands`](@ref)
-* [`Telegram.setMyName`](@ref)
-* [`Telegram.getMyName`](@ref)
-* [`Telegram.setMyDescription`](@ref)
-* [`Telegram.getMyDescription`](@ref)
-* [`Telegram.setMyShortDescription`](@ref)
-* [`Telegram.getMyShortDescription`](@ref)
-* [`Telegram.setMyProfilePhoto`](@ref)
-* [`Telegram.removeMyProfilePhoto`](@ref)
-* [`Telegram.setChatMenuButton`](@ref)
-* [`Telegram.getChatMenuButton`](@ref)
-* [`Telegram.setMyDefaultAdministratorRights`](@ref)
-* [`Telegram.getMyDefaultAdministratorRights`](@ref)
-* [`Telegram.getAvailableGifts`](@ref)
-* [`Telegram.sendGift`](@ref)
-* [`Telegram.giftPremiumSubscription`](@ref)
-* [`Telegram.verifyUser`](@ref)
-* [`Telegram.verifyChat`](@ref)
-* [`Telegram.removeUserVerification`](@ref)
-* [`Telegram.removeChatVerification`](@ref)
-* [`Telegram.readBusinessMessage`](@ref)
-* [`Telegram.deleteBusinessMessages`](@ref)
-* [`Telegram.setBusinessAccountName`](@ref)
-* [`Telegram.setBusinessAccountUsername`](@ref)
-* [`Telegram.setBusinessAccountBio`](@ref)
-* [`Telegram.setBusinessAccountProfilePhoto`](@ref)
-* [`Telegram.removeBusinessAccountProfilePhoto`](@ref)
-* [`Telegram.setBusinessAccountGiftSettings`](@ref)
-* [`Telegram.getBusinessAccountStarBalance`](@ref)
-* [`Telegram.transferBusinessAccountStars`](@ref)
-* [`Telegram.getBusinessAccountGifts`](@ref)
-* [`Telegram.getUserGifts`](@ref)
-* [`Telegram.getChatGifts`](@ref)
-* [`Telegram.convertGiftToStars`](@ref)
-* [`Telegram.upgradeGift`](@ref)
-* [`Telegram.transferGift`](@ref)
-* [`Telegram.postStory`](@ref)
-* [`Telegram.repostStory`](@ref)
-* [`Telegram.editStory`](@ref)
-* [`Telegram.deleteStory`](@ref)
-
-```@docs
-getMe
-```
-
-```@docs
-logOut
-```
-
-```@docs
-close
-```
-
-```@docs
-sendMessage
-```
-
-```@docs
-forwardMessage
-```
-
-```@docs
-forwardMessages
-```
-
-```@docs
-copyMessage
-```
-
-```@docs
-copyMessages
-```
-
-```@docs
-sendPhoto
-```
-
-```@docs
-sendAudio
-```
-
-```@docs
-sendDocument
-```
-
-```@docs
-sendVideo
-```
-
-```@docs
-sendAnimation
-```
-
-```@docs
-sendVoice
-```
-
-```@docs
-sendVideoNote
-```
-
-```@docs
-sendPaidMedia
-```
-
-```@docs
-sendMediaGroup
-```
-
-```@docs
-sendLocation
-```
-
-```@docs
-sendVenue
-```
-
-```@docs
-sendContact
-```
-
-```@docs
-sendPoll
-```
-
-```@docs
-sendChecklist
-```
-
-```@docs
-sendDice
-```
-
-```@docs
-sendMessageDraft
-```
-
-```@docs
-sendChatAction
-```
-
-```@docs
-setMessageReaction
-```
-
-```@docs
-getUserProfilePhotos
-```
-
-```@docs
-getUserProfileAudios
-```
-
-```@docs
-setUserEmojiStatus
-```
-
-```@docs
-getFile
-```
-
-```@docs
-banChatMember
-```
-
-```@docs
-unbanChatMember
-```
-
-```@docs
-restrictChatMember
-```
-
-```@docs
-promoteChatMember
-```
-
-```@docs
-setChatAdministratorCustomTitle
-```
-
-```@docs
-banChatSenderChat
-```
-
-```@docs
-unbanChatSenderChat
-```
-
-```@docs
-setChatPermissions
-```
-
-```@docs
-exportChatInviteLink
-```
-
-```@docs
-createChatInviteLink
-```
-
-```@docs
-editChatInviteLink
-```
-
-```@docs
-createChatSubscriptionInviteLink
-```
-
-```@docs
-editChatSubscriptionInviteLink
-```
-
-```@docs
-revokeChatInviteLink
-```
-
-```@docs
-approveChatJoinRequest
-```
-
-```@docs
-declineChatJoinRequest
-```
-
-```@docs
-setChatPhoto
-```
-
-```@docs
-deleteChatPhoto
-```
-
-```@docs
-setChatTitle
-```
-
-```@docs
-setChatDescription
-```
-
-```@docs
-pinChatMessage
-```
-
-```@docs
-unpinChatMessage
-```
-
-```@docs
-unpinAllChatMessages
-```
-
-```@docs
-leaveChat
-```
-
-```@docs
-getChat
-```
-
-```@docs
-getChatAdministrators
-```
-
-```@docs
-getChatMemberCount
-```
-
-```@docs
-getChatMember
-```
-
-```@docs
-setChatStickerSet
-```
-
-```@docs
-deleteChatStickerSet
-```
-
-```@docs
-getForumTopicIconStickers
-```
-
-```@docs
-createForumTopic
-```
-
-```@docs
-editForumTopic
-```
-
-```@docs
-closeForumTopic
-```
-
-```@docs
-reopenForumTopic
-```
-
-```@docs
-deleteForumTopic
-```
-
-```@docs
-unpinAllForumTopicMessages
-```
-
-```@docs
-editGeneralForumTopic
-```
-
-```@docs
-closeGeneralForumTopic
-```
-
-```@docs
-reopenGeneralForumTopic
-```
-
-```@docs
-hideGeneralForumTopic
-```
-
-```@docs
-unhideGeneralForumTopic
-```
-
-```@docs
-unpinAllGeneralForumTopicMessages
-```
-
-```@docs
-answerCallbackQuery
-```
-
-```@docs
-getUserChatBoosts
-```
-
-```@docs
-getBusinessConnection
-```
-
-```@docs
-setMyCommands
-```
-
-```@docs
-deleteMyCommands
-```
-
-```@docs
-getMyCommands
-```
-
-```@docs
-setMyName
-```
-
-```@docs
-getMyName
-```
-
-```@docs
-setMyDescription
-```
-
-```@docs
-getMyDescription
-```
-
-```@docs
-setMyShortDescription
-```
-
-```@docs
-getMyShortDescription
-```
-
-```@docs
-setMyProfilePhoto
-```
-
-```@docs
-removeMyProfilePhoto
-```
-
-```@docs
-setChatMenuButton
-```
-
-```@docs
-getChatMenuButton
-```
-
-```@docs
-setMyDefaultAdministratorRights
-```
-
-```@docs
-getMyDefaultAdministratorRights
-```
-
-```@docs
-getAvailableGifts
-```
-
-```@docs
-sendGift
-```
-
-```@docs
-giftPremiumSubscription
-```
-
-```@docs
-verifyUser
-```
-
-```@docs
-verifyChat
-```
-
-```@docs
-removeUserVerification
-```
-
-```@docs
-removeChatVerification
-```
-
-```@docs
-readBusinessMessage
-```
-
-```@docs
-deleteBusinessMessages
-```
-
-```@docs
-setBusinessAccountName
-```
-
-```@docs
-setBusinessAccountUsername
-```
-
-```@docs
-setBusinessAccountBio
-```
-
-```@docs
-setBusinessAccountProfilePhoto
-```
-
-```@docs
-removeBusinessAccountProfilePhoto
-```
-
-```@docs
-setBusinessAccountGiftSettings
-```
-
-```@docs
-getBusinessAccountStarBalance
-```
-
-```@docs
-transferBusinessAccountStars
-```
-
-```@docs
-getBusinessAccountGifts
-```
-
-```@docs
-getUserGifts
-```
-
-```@docs
-getChatGifts
-```
-
-```@docs
-convertGiftToStars
-```
-
-```@docs
-upgradeGift
-```
-
-```@docs
-transferGift
-```
-
-```@docs
-postStory
-```
-
-```@docs
-repostStory
-```
-
-```@docs
-editStory
-```
-
-```@docs
-deleteStory
-```
-
-## Updating messages
-
-* [`Telegram.editMessageText`](@ref)
-* [`Telegram.editMessageCaption`](@ref)
-* [`Telegram.editMessageMedia`](@ref)
-* [`Telegram.editMessageLiveLocation`](@ref)
-* [`Telegram.stopMessageLiveLocation`](@ref)
-* [`Telegram.editMessageChecklist`](@ref)
-* [`Telegram.editMessageReplyMarkup`](@ref)
-* [`Telegram.stopPoll`](@ref)
-* [`Telegram.approveSuggestedPost`](@ref)
-* [`Telegram.declineSuggestedPost`](@ref)
-* [`Telegram.deleteMessage`](@ref)
-* [`Telegram.deleteMessages`](@ref)
-
-```@docs
-editMessageText
-```
-
-```@docs
-editMessageCaption
-```
-
-```@docs
-editMessageMedia
-```
-
-```@docs
-editMessageLiveLocation
-```
-
-```@docs
-stopMessageLiveLocation
-```
-
-```@docs
-editMessageChecklist
-```
-
-```@docs
-editMessageReplyMarkup
-```
-
-```@docs
-stopPoll
-```
-
-```@docs
-approveSuggestedPost
-```
-
-```@docs
-declineSuggestedPost
-```
-
-```@docs
-deleteMessage
-```
-
-```@docs
-deleteMessages
-```
-
-## Stickers
-
-* [`Telegram.sendSticker`](@ref)
-* [`Telegram.getStickerSet`](@ref)
-* [`Telegram.getCustomEmojiStickers`](@ref)
-* [`Telegram.uploadStickerFile`](@ref)
-* [`Telegram.createNewStickerSet`](@ref)
-* [`Telegram.addStickerToSet`](@ref)
-* [`Telegram.setStickerPositionInSet`](@ref)
-* [`Telegram.deleteStickerFromSet`](@ref)
-* [`Telegram.replaceStickerInSet`](@ref)
-* [`Telegram.setStickerEmojiList`](@ref)
-* [`Telegram.setStickerKeywords`](@ref)
-* [`Telegram.setStickerMaskPosition`](@ref)
-* [`Telegram.setStickerSetTitle`](@ref)
-* [`Telegram.setStickerSetThumbnail`](@ref)
-* [`Telegram.setCustomEmojiStickerSetThumbnail`](@ref)
-* [`Telegram.deleteStickerSet`](@ref)
-
-```@docs
-sendSticker
-```
-
-```@docs
-getStickerSet
-```
-
-```@docs
-getCustomEmojiStickers
-```
-
-```@docs
-uploadStickerFile
-```
-
-```@docs
-createNewStickerSet
-```
+CurrentModule = Telegram.API
+```
+
+# Bot API 10.3 Reference
+
+This page is generated from the pinned Bot API 10.3 specification (August 24, 2026).
+Use `using Telegram, Telegram.API`; every method accepts an optional `TelegramClient`
+and keyword parameters matching the Telegram Bot API. Responses use dynamic `JSON3.Object`
+or arrays; type declarations are documented separately.
+
+See the [official Telegram Bot API](https://core.telegram.org/bots/api) for protocol details.
+
+## Methods
+
+- [`addStickerToSet`](https://core.telegram.org/bots/api#addstickertoset)
+- [`answerCallbackQuery`](https://core.telegram.org/bots/api#answercallbackquery)
+- [`answerChatJoinRequestQuery`](https://core.telegram.org/bots/api#answerchatjoinrequestquery)
+- [`answerGuestQuery`](https://core.telegram.org/bots/api#answerguestquery)
+- [`answerInlineQuery`](https://core.telegram.org/bots/api#answerinlinequery)
+- [`answerPreCheckoutQuery`](https://core.telegram.org/bots/api#answerprecheckoutquery)
+- [`answerShippingQuery`](https://core.telegram.org/bots/api#answershippingquery)
+- [`answerWebAppQuery`](https://core.telegram.org/bots/api#answerwebappquery)
+- [`approveChatJoinRequest`](https://core.telegram.org/bots/api#approvechatjoinrequest)
+- [`approveSuggestedPost`](https://core.telegram.org/bots/api#approvesuggestedpost)
+- [`banChatMember`](https://core.telegram.org/bots/api#banchatmember)
+- [`banChatSenderChat`](https://core.telegram.org/bots/api#banchatsenderchat)
+- [`close`](https://core.telegram.org/bots/api#close)
+- [`closeForumTopic`](https://core.telegram.org/bots/api#closeforumtopic)
+- [`closeGeneralForumTopic`](https://core.telegram.org/bots/api#closegeneralforumtopic)
+- [`convertGiftToStars`](https://core.telegram.org/bots/api#convertgifttostars)
+- [`copyMessage`](https://core.telegram.org/bots/api#copymessage)
+- [`copyMessages`](https://core.telegram.org/bots/api#copymessages)
+- [`createChatInviteLink`](https://core.telegram.org/bots/api#createchatinvitelink)
+- [`createChatSubscriptionInviteLink`](https://core.telegram.org/bots/api#createchatsubscriptioninvitelink)
+- [`createForumTopic`](https://core.telegram.org/bots/api#createforumtopic)
+- [`createInvoiceLink`](https://core.telegram.org/bots/api#createinvoicelink)
+- [`createNewStickerSet`](https://core.telegram.org/bots/api#createnewstickerset)
+- [`declineChatJoinRequest`](https://core.telegram.org/bots/api#declinechatjoinrequest)
+- [`declineSuggestedPost`](https://core.telegram.org/bots/api#declinesuggestedpost)
+- [`deleteAllMessageReactions`](https://core.telegram.org/bots/api#deleteallmessagereactions)
+- [`deleteBusinessMessages`](https://core.telegram.org/bots/api#deletebusinessmessages)
+- [`deleteChatPhoto`](https://core.telegram.org/bots/api#deletechatphoto)
+- [`deleteChatStickerSet`](https://core.telegram.org/bots/api#deletechatstickerset)
+- [`deleteEphemeralMessage`](https://core.telegram.org/bots/api#deleteephemeralmessage)
+- [`deleteForumTopic`](https://core.telegram.org/bots/api#deleteforumtopic)
+- [`deleteMessage`](https://core.telegram.org/bots/api#deletemessage)
+- [`deleteMessageReaction`](https://core.telegram.org/bots/api#deletemessagereaction)
+- [`deleteMessages`](https://core.telegram.org/bots/api#deletemessages)
+- [`deleteMyCommands`](https://core.telegram.org/bots/api#deletemycommands)
+- [`deleteStickerFromSet`](https://core.telegram.org/bots/api#deletestickerfromset)
+- [`deleteStickerSet`](https://core.telegram.org/bots/api#deletestickerset)
+- [`deleteStory`](https://core.telegram.org/bots/api#deletestory)
+- [`deleteWebhook`](https://core.telegram.org/bots/api#deletewebhook)
+- [`editChatInviteLink`](https://core.telegram.org/bots/api#editchatinvitelink)
+- [`editChatSubscriptionInviteLink`](https://core.telegram.org/bots/api#editchatsubscriptioninvitelink)
+- [`editEphemeralMessageCaption`](https://core.telegram.org/bots/api#editephemeralmessagecaption)
+- [`editEphemeralMessageMedia`](https://core.telegram.org/bots/api#editephemeralmessagemedia)
+- [`editEphemeralMessageReplyMarkup`](https://core.telegram.org/bots/api#editephemeralmessagereplymarkup)
+- [`editEphemeralMessageText`](https://core.telegram.org/bots/api#editephemeralmessagetext)
+- [`editForumTopic`](https://core.telegram.org/bots/api#editforumtopic)
+- [`editGeneralForumTopic`](https://core.telegram.org/bots/api#editgeneralforumtopic)
+- [`editMessageCaption`](https://core.telegram.org/bots/api#editmessagecaption)
+- [`editMessageChecklist`](https://core.telegram.org/bots/api#editmessagechecklist)
+- [`editMessageLiveLocation`](https://core.telegram.org/bots/api#editmessagelivelocation)
+- [`editMessageMedia`](https://core.telegram.org/bots/api#editmessagemedia)
+- [`editMessageReplyMarkup`](https://core.telegram.org/bots/api#editmessagereplymarkup)
+- [`editMessageText`](https://core.telegram.org/bots/api#editmessagetext)
+- [`editStory`](https://core.telegram.org/bots/api#editstory)
+- [`editUserStarSubscription`](https://core.telegram.org/bots/api#edituserstarsubscription)
+- [`exportChatInviteLink`](https://core.telegram.org/bots/api#exportchatinvitelink)
+- [`forwardMessage`](https://core.telegram.org/bots/api#forwardmessage)
+- [`forwardMessages`](https://core.telegram.org/bots/api#forwardmessages)
+- [`getAvailableGifts`](https://core.telegram.org/bots/api#getavailablegifts)
+- [`getBusinessAccountGifts`](https://core.telegram.org/bots/api#getbusinessaccountgifts)
+- [`getBusinessAccountStarBalance`](https://core.telegram.org/bots/api#getbusinessaccountstarbalance)
+- [`getBusinessConnection`](https://core.telegram.org/bots/api#getbusinessconnection)
+- [`getChat`](https://core.telegram.org/bots/api#getchat)
+- [`getChatAdministrators`](https://core.telegram.org/bots/api#getchatadministrators)
+- [`getChatGifts`](https://core.telegram.org/bots/api#getchatgifts)
+- [`getChatMember`](https://core.telegram.org/bots/api#getchatmember)
+- [`getChatMemberCount`](https://core.telegram.org/bots/api#getchatmembercount)
+- [`getChatMenuButton`](https://core.telegram.org/bots/api#getchatmenubutton)
+- [`getCustomEmojiStickers`](https://core.telegram.org/bots/api#getcustomemojistickers)
+- [`getFile`](https://core.telegram.org/bots/api#getfile)
+- [`getForumTopicIconStickers`](https://core.telegram.org/bots/api#getforumtopiciconstickers)
+- [`getGameHighScores`](https://core.telegram.org/bots/api#getgamehighscores)
+- [`getManagedBotAccessSettings`](https://core.telegram.org/bots/api#getmanagedbotaccesssettings)
+- [`getManagedBotToken`](https://core.telegram.org/bots/api#getmanagedbottoken)
+- [`getMe`](https://core.telegram.org/bots/api#getme)
+- [`getMyCommands`](https://core.telegram.org/bots/api#getmycommands)
+- [`getMyDefaultAdministratorRights`](https://core.telegram.org/bots/api#getmydefaultadministratorrights)
+- [`getMyDescription`](https://core.telegram.org/bots/api#getmydescription)
+- [`getMyName`](https://core.telegram.org/bots/api#getmyname)
+- [`getMyShortDescription`](https://core.telegram.org/bots/api#getmyshortdescription)
+- [`getMyStarBalance`](https://core.telegram.org/bots/api#getmystarbalance)
+- [`getStarTransactions`](https://core.telegram.org/bots/api#getstartransactions)
+- [`getStickerSet`](https://core.telegram.org/bots/api#getstickerset)
+- [`getUpdates`](https://core.telegram.org/bots/api#getupdates)
+- [`getUserChatBoosts`](https://core.telegram.org/bots/api#getuserchatboosts)
+- [`getUserGifts`](https://core.telegram.org/bots/api#getusergifts)
+- [`getUserPersonalChatMessages`](https://core.telegram.org/bots/api#getuserpersonalchatmessages)
+- [`getUserProfileAudios`](https://core.telegram.org/bots/api#getuserprofileaudios)
+- [`getUserProfilePhotos`](https://core.telegram.org/bots/api#getuserprofilephotos)
+- [`getWebhookInfo`](https://core.telegram.org/bots/api#getwebhookinfo)
+- [`giftPremiumSubscription`](https://core.telegram.org/bots/api#giftpremiumsubscription)
+- [`hideGeneralForumTopic`](https://core.telegram.org/bots/api#hidegeneralforumtopic)
+- [`leaveChat`](https://core.telegram.org/bots/api#leavechat)
+- [`logOut`](https://core.telegram.org/bots/api#logout)
+- [`pinChatMessage`](https://core.telegram.org/bots/api#pinchatmessage)
+- [`postStory`](https://core.telegram.org/bots/api#poststory)
+- [`promoteChatMember`](https://core.telegram.org/bots/api#promotechatmember)
+- [`readBusinessMessage`](https://core.telegram.org/bots/api#readbusinessmessage)
+- [`refundStarPayment`](https://core.telegram.org/bots/api#refundstarpayment)
+- [`removeBusinessAccountProfilePhoto`](https://core.telegram.org/bots/api#removebusinessaccountprofilephoto)
+- [`removeChatVerification`](https://core.telegram.org/bots/api#removechatverification)
+- [`removeMyProfilePhoto`](https://core.telegram.org/bots/api#removemyprofilephoto)
+- [`removeUserVerification`](https://core.telegram.org/bots/api#removeuserverification)
+- [`reopenForumTopic`](https://core.telegram.org/bots/api#reopenforumtopic)
+- [`reopenGeneralForumTopic`](https://core.telegram.org/bots/api#reopengeneralforumtopic)
+- [`replaceManagedBotToken`](https://core.telegram.org/bots/api#replacemanagedbottoken)
+- [`replaceStickerInSet`](https://core.telegram.org/bots/api#replacestickerinset)
+- [`repostStory`](https://core.telegram.org/bots/api#repoststory)
+- [`restrictChatMember`](https://core.telegram.org/bots/api#restrictchatmember)
+- [`revokeChatInviteLink`](https://core.telegram.org/bots/api#revokechatinvitelink)
+- [`savePreparedInlineMessage`](https://core.telegram.org/bots/api#savepreparedinlinemessage)
+- [`savePreparedKeyboardButton`](https://core.telegram.org/bots/api#savepreparedkeyboardbutton)
+- [`sendAnimation`](https://core.telegram.org/bots/api#sendanimation)
+- [`sendAudio`](https://core.telegram.org/bots/api#sendaudio)
+- [`sendChatAction`](https://core.telegram.org/bots/api#sendchataction)
+- [`sendChatJoinRequestWebApp`](https://core.telegram.org/bots/api#sendchatjoinrequestwebapp)
+- [`sendChecklist`](https://core.telegram.org/bots/api#sendchecklist)
+- [`sendContact`](https://core.telegram.org/bots/api#sendcontact)
+- [`sendDice`](https://core.telegram.org/bots/api#senddice)
+- [`sendDocument`](https://core.telegram.org/bots/api#senddocument)
+- [`sendGame`](https://core.telegram.org/bots/api#sendgame)
+- [`sendGift`](https://core.telegram.org/bots/api#sendgift)
+- [`sendInvoice`](https://core.telegram.org/bots/api#sendinvoice)
+- [`sendLivePhoto`](https://core.telegram.org/bots/api#sendlivephoto)
+- [`sendLocation`](https://core.telegram.org/bots/api#sendlocation)
+- [`sendMediaGroup`](https://core.telegram.org/bots/api#sendmediagroup)
+- [`sendMessage`](https://core.telegram.org/bots/api#sendmessage)
+- [`sendMessageDraft`](https://core.telegram.org/bots/api#sendmessagedraft)
+- [`sendPaidMedia`](https://core.telegram.org/bots/api#sendpaidmedia)
+- [`sendPhoto`](https://core.telegram.org/bots/api#sendphoto)
+- [`sendPoll`](https://core.telegram.org/bots/api#sendpoll)
+- [`sendRichMessage`](https://core.telegram.org/bots/api#sendrichmessage)
+- [`sendRichMessageDraft`](https://core.telegram.org/bots/api#sendrichmessagedraft)
+- [`sendSticker`](https://core.telegram.org/bots/api#sendsticker)
+- [`sendVenue`](https://core.telegram.org/bots/api#sendvenue)
+- [`sendVideo`](https://core.telegram.org/bots/api#sendvideo)
+- [`sendVideoNote`](https://core.telegram.org/bots/api#sendvideonote)
+- [`sendVoice`](https://core.telegram.org/bots/api#sendvoice)
+- [`setBusinessAccountBio`](https://core.telegram.org/bots/api#setbusinessaccountbio)
+- [`setBusinessAccountGiftSettings`](https://core.telegram.org/bots/api#setbusinessaccountgiftsettings)
+- [`setBusinessAccountName`](https://core.telegram.org/bots/api#setbusinessaccountname)
+- [`setBusinessAccountProfilePhoto`](https://core.telegram.org/bots/api#setbusinessaccountprofilephoto)
+- [`setBusinessAccountUsername`](https://core.telegram.org/bots/api#setbusinessaccountusername)
+- [`setChatAdministratorCustomTitle`](https://core.telegram.org/bots/api#setchatadministratorcustomtitle)
+- [`setChatDescription`](https://core.telegram.org/bots/api#setchatdescription)
+- [`setChatMemberTag`](https://core.telegram.org/bots/api#setchatmembertag)
+- [`setChatMenuButton`](https://core.telegram.org/bots/api#setchatmenubutton)
+- [`setChatPermissions`](https://core.telegram.org/bots/api#setchatpermissions)
+- [`setChatPhoto`](https://core.telegram.org/bots/api#setchatphoto)
+- [`setChatStickerSet`](https://core.telegram.org/bots/api#setchatstickerset)
+- [`setChatTitle`](https://core.telegram.org/bots/api#setchattitle)
+- [`setCustomEmojiStickerSetThumbnail`](https://core.telegram.org/bots/api#setcustomemojistickersetthumbnail)
+- [`setGameScore`](https://core.telegram.org/bots/api#setgamescore)
+- [`setManagedBotAccessSettings`](https://core.telegram.org/bots/api#setmanagedbotaccesssettings)
+- [`setMessageReaction`](https://core.telegram.org/bots/api#setmessagereaction)
+- [`setMyCommands`](https://core.telegram.org/bots/api#setmycommands)
+- [`setMyDefaultAdministratorRights`](https://core.telegram.org/bots/api#setmydefaultadministratorrights)
+- [`setMyDescription`](https://core.telegram.org/bots/api#setmydescription)
+- [`setMyName`](https://core.telegram.org/bots/api#setmyname)
+- [`setMyProfilePhoto`](https://core.telegram.org/bots/api#setmyprofilephoto)
+- [`setMyShortDescription`](https://core.telegram.org/bots/api#setmyshortdescription)
+- [`setPassportDataErrors`](https://core.telegram.org/bots/api#setpassportdataerrors)
+- [`setStickerEmojiList`](https://core.telegram.org/bots/api#setstickeremojilist)
+- [`setStickerKeywords`](https://core.telegram.org/bots/api#setstickerkeywords)
+- [`setStickerMaskPosition`](https://core.telegram.org/bots/api#setstickermaskposition)
+- [`setStickerPositionInSet`](https://core.telegram.org/bots/api#setstickerpositioninset)
+- [`setStickerSetThumbnail`](https://core.telegram.org/bots/api#setstickersetthumbnail)
+- [`setStickerSetTitle`](https://core.telegram.org/bots/api#setstickersettitle)
+- [`setUserEmojiStatus`](https://core.telegram.org/bots/api#setuseremojistatus)
+- [`setWebhook`](https://core.telegram.org/bots/api#setwebhook)
+- [`stopMessageLiveLocation`](https://core.telegram.org/bots/api#stopmessagelivelocation)
+- [`stopPoll`](https://core.telegram.org/bots/api#stoppoll)
+- [`transferBusinessAccountStars`](https://core.telegram.org/bots/api#transferbusinessaccountstars)
+- [`transferGift`](https://core.telegram.org/bots/api#transfergift)
+- [`unbanChatMember`](https://core.telegram.org/bots/api#unbanchatmember)
+- [`unbanChatSenderChat`](https://core.telegram.org/bots/api#unbanchatsenderchat)
+- [`unhideGeneralForumTopic`](https://core.telegram.org/bots/api#unhidegeneralforumtopic)
+- [`unpinAllChatMessages`](https://core.telegram.org/bots/api#unpinallchatmessages)
+- [`unpinAllForumTopicMessages`](https://core.telegram.org/bots/api#unpinallforumtopicmessages)
+- [`unpinAllGeneralForumTopicMessages`](https://core.telegram.org/bots/api#unpinallgeneralforumtopicmessages)
+- [`unpinChatMessage`](https://core.telegram.org/bots/api#unpinchatmessage)
+- [`upgradeGift`](https://core.telegram.org/bots/api#upgradegift)
+- [`uploadStickerFile`](https://core.telegram.org/bots/api#uploadstickerfile)
+- [`verifyChat`](https://core.telegram.org/bots/api#verifychat)
+- [`verifyUser`](https://core.telegram.org/bots/api#verifyuser)
+
+## Julia method documentation
 
 ```@docs
 addStickerToSet
-```
-
-```@docs
-setStickerPositionInSet
-```
-
-```@docs
-deleteStickerFromSet
-```
-
-```@docs
-replaceStickerInSet
-```
-
-```@docs
-setStickerEmojiList
-```
-
-```@docs
-setStickerKeywords
-```
-
-```@docs
-setStickerMaskPosition
-```
-
-```@docs
-setStickerSetTitle
-```
-
-```@docs
-setStickerSetThumbnail
-```
-
-```@docs
-setCustomEmojiStickerSetThumbnail
-```
-
-```@docs
-deleteStickerSet
-```
-
-## Inline mode
-
-* [`Telegram.answerInlineQuery`](@ref)
-* [`Telegram.answerWebAppQuery`](@ref)
-* [`Telegram.savePreparedInlineMessage`](@ref)
-
-```@docs
+answerCallbackQuery
+answerChatJoinRequestQuery
+answerGuestQuery
 answerInlineQuery
-```
-
-```@docs
-answerWebAppQuery
-```
-
-```@docs
-savePreparedInlineMessage
-```
-
-## Payments
-
-* [`Telegram.sendInvoice`](@ref)
-* [`Telegram.createInvoiceLink`](@ref)
-* [`Telegram.answerShippingQuery`](@ref)
-* [`Telegram.answerPreCheckoutQuery`](@ref)
-* [`Telegram.getMyStarBalance`](@ref)
-* [`Telegram.getStarTransactions`](@ref)
-* [`Telegram.refundStarPayment`](@ref)
-* [`Telegram.editUserStarSubscription`](@ref)
-
-```@docs
-sendInvoice
-```
-
-```@docs
-createInvoiceLink
-```
-
-```@docs
-answerShippingQuery
-```
-
-```@docs
 answerPreCheckoutQuery
-```
-
-```@docs
-getMyStarBalance
-```
-
-```@docs
-getStarTransactions
-```
-
-```@docs
-refundStarPayment
-```
-
-```@docs
+answerShippingQuery
+answerWebAppQuery
+approveChatJoinRequest
+approveSuggestedPost
+banChatMember
+banChatSenderChat
+close
+closeForumTopic
+closeGeneralForumTopic
+convertGiftToStars
+copyMessage
+copyMessages
+createChatInviteLink
+createChatSubscriptionInviteLink
+createForumTopic
+createInvoiceLink
+createNewStickerSet
+declineChatJoinRequest
+declineSuggestedPost
+deleteAllMessageReactions
+deleteBusinessMessages
+deleteChatPhoto
+deleteChatStickerSet
+deleteEphemeralMessage
+deleteForumTopic
+deleteMessage
+deleteMessageReaction
+deleteMessages
+deleteMyCommands
+deleteStickerFromSet
+deleteStickerSet
+deleteStory
+deleteWebhook
+editChatInviteLink
+editChatSubscriptionInviteLink
+editEphemeralMessageCaption
+editEphemeralMessageMedia
+editEphemeralMessageReplyMarkup
+editEphemeralMessageText
+editForumTopic
+editGeneralForumTopic
+editMessageCaption
+editMessageChecklist
+editMessageLiveLocation
+editMessageMedia
+editMessageReplyMarkup
+editMessageText
+editStory
 editUserStarSubscription
-```
-
-## Telegram Passport
-
-* [`Telegram.setPassportDataErrors`](@ref)
-
-```@docs
-setPassportDataErrors
-```
-
-## Games
-
-* [`Telegram.sendGame`](@ref)
-* [`Telegram.setGameScore`](@ref)
-* [`Telegram.getGameHighScores`](@ref)
-
-```@docs
-sendGame
-```
-
-```@docs
-setGameScore
-```
-
-```@docs
+exportChatInviteLink
+forwardMessage
+forwardMessages
+getAvailableGifts
+getBusinessAccountGifts
+getBusinessAccountStarBalance
+getBusinessConnection
+getChat
+getChatAdministrators
+getChatGifts
+getChatMember
+getChatMemberCount
+getChatMenuButton
+getCustomEmojiStickers
+getFile
+getForumTopicIconStickers
 getGameHighScores
+getManagedBotAccessSettings
+getManagedBotToken
+getMe
+getMyCommands
+getMyDefaultAdministratorRights
+getMyDescription
+getMyName
+getMyShortDescription
+getMyStarBalance
+getStarTransactions
+getStickerSet
+getUpdates
+getUserChatBoosts
+getUserGifts
+getUserPersonalChatMessages
+getUserProfileAudios
+getUserProfilePhotos
+getWebhookInfo
+giftPremiumSubscription
+hideGeneralForumTopic
+leaveChat
+logOut
+pinChatMessage
+postStory
+promoteChatMember
+readBusinessMessage
+refundStarPayment
+removeBusinessAccountProfilePhoto
+removeChatVerification
+removeMyProfilePhoto
+removeUserVerification
+reopenForumTopic
+reopenGeneralForumTopic
+replaceManagedBotToken
+replaceStickerInSet
+repostStory
+restrictChatMember
+revokeChatInviteLink
+savePreparedInlineMessage
+savePreparedKeyboardButton
+sendAnimation
+sendAudio
+sendChatAction
+sendChatJoinRequestWebApp
+sendChecklist
+sendContact
+sendDice
+sendDocument
+sendGame
+sendGift
+sendInvoice
+sendLivePhoto
+sendLocation
+sendMediaGroup
+sendMessage
+sendMessageDraft
+sendPaidMedia
+sendPhoto
+sendPoll
+sendRichMessage
+sendRichMessageDraft
+sendSticker
+sendVenue
+sendVideo
+sendVideoNote
+sendVoice
+setBusinessAccountBio
+setBusinessAccountGiftSettings
+setBusinessAccountName
+setBusinessAccountProfilePhoto
+setBusinessAccountUsername
+setChatAdministratorCustomTitle
+setChatDescription
+setChatMemberTag
+setChatMenuButton
+setChatPermissions
+setChatPhoto
+setChatStickerSet
+setChatTitle
+setCustomEmojiStickerSetThumbnail
+setGameScore
+setManagedBotAccessSettings
+setMessageReaction
+setMyCommands
+setMyDefaultAdministratorRights
+setMyDescription
+setMyName
+setMyProfilePhoto
+setMyShortDescription
+setPassportDataErrors
+setStickerEmojiList
+setStickerKeywords
+setStickerMaskPosition
+setStickerPositionInSet
+setStickerSetThumbnail
+setStickerSetTitle
+setUserEmojiStatus
+setWebhook
+stopMessageLiveLocation
+stopPoll
+transferBusinessAccountStars
+transferGift
+unbanChatMember
+unbanChatSenderChat
+unhideGeneralForumTopic
+unpinAllChatMessages
+unpinAllForumTopicMessages
+unpinAllGeneralForumTopicMessages
+unpinChatMessage
+upgradeGift
+uploadStickerFile
+verifyChat
+verifyUser
 ```
