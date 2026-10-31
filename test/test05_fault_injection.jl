@@ -207,7 +207,7 @@ json_reply(status::Integer, body::AbstractString) =
                                part[3] == "synthetic image", uploaded_parts[])
         end
     finally
-        close(server)
+        Base.close(server)
     end
 
     @testset "FALHA-001: Closed server produces sanitized transport error" begin
