@@ -3,6 +3,7 @@ module TestAPI103
 using Telegram
 using Test
 using JSON3
+using HTTP
 
 const SPEC_PATH = joinpath(@__DIR__, "..", "extras", "bot_api_10_3.min.json")
 const SCHEMA = JSON3.read(read(SPEC_PATH, String))
@@ -105,6 +106,52 @@ include(joinpath(@__DIR__, "..", "extras", "generate_api_from_spec.jl"))
             end
             @test occursin(string("## ", Char(96), "EphemeralMessageParameters", Char(96)), content)
             @test occursin(string("## ", Char(96), "RichMessageButton", Char(96)), content)
+        end
+    end
+end
+
+
+@testset "Schema-defined top-level InputFile fields use multipart uploads" begin
+    file_fields = Set{Symbol}()
+    for method in values(SCHEMA.methods)
+        for field in get(method, :fields, ())
+            if any(occursin("InputFile", String(t)) for t in field.types)
+                push!(file_fields, Symbol(field.name))
+            end
+        end
+    end
+    @test :live_photo in file_fields
+    @test :thumbnail in file_fields
+    @test :cover in file_fields
+    @test all(name in Telegram.DEFAULT_OPTS.upload_kw for name in file_fields)
+
+    if all(name in Telegram.DEFAULT_OPTS.upload_kw for name in file_fields)
+        received = Ref{Any}(nothing)
+        server = HTTP.serve!("127.0.0.1", 0; listenany = true, verbose = false) do req
+            parts = HTTP.parse_multipart_form(req)
+            received[] = [(part.name, part.filename, read(part.data, String)) for part in parts]
+            return HTTP.Response(200, ["Content-Type" => "application/json"],
+                                 "{\"ok\":true,\"result\":true}")
+        end
+        try
+            client = Telegram.TelegramClient("123456:SYNTHETIC";
+                ep = "http://127.0.0.1:$(HTTP.port(server))/bot",
+                allow_insecure_http = true, use_globally = false,
+                enable_traceability = false)
+            @test Telegram.API.sendLivePhoto(client; chat_id = 456,
+                live_photo = "clip.mov" => IOBuffer("synthetic-live-photo")) === true
+            @test any(p -> p[1] == "live_photo" && p[2] == "clip.mov" &&
+                           p[3] == "synthetic-live-photo", received[])
+
+            @test Telegram.API.sendVideo(client; chat_id = 456,
+                video = "file_id", cover = "cover.jpg" => IOBuffer("synthetic-cover"),
+                thumbnail = "thumb.jpg" => IOBuffer("synthetic-thumb")) === true
+            @test any(p -> p[1] == "cover" && p[2] == "cover.jpg" &&
+                           p[3] == "synthetic-cover", received[])
+            @test any(p -> p[1] == "thumbnail" && p[2] == "thumb.jpg" &&
+                           p[3] == "synthetic-thumb", received[])
+        finally
+            Base.close(server)
         end
     end
 end
