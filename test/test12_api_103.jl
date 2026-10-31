@@ -7,11 +7,24 @@ using JSON3
 const SPEC_PATH = joinpath(@__DIR__, "..", "extras", "bot_api_10_3.min.json")
 const SCHEMA = JSON3.read(read(SPEC_PATH, String))
 
+# Ensure that the checked-in API source and both references can be regenerated
+# entirely offline from the pinned specification.
+include(joinpath(@__DIR__, "..", "extras", "generate_api_from_spec.jl"))
+
+
 @testset "Bot API 10.3 reproducible parity" begin
     @test SCHEMA.version == "Bot API 10.3"
     @test SCHEMA.release_date == "August 24, 2026"
     @test length(SCHEMA.methods) == 185
     @test length(SCHEMA.types) == 400
+
+    @test read(joinpath(@__DIR__, "..", "src", "telegram_api.jl"), String) ==
+          APIReferenceGenerator.render_api(SCHEMA)
+    @test read(joinpath(@__DIR__, "..", "docs", "src", "reference.md"), String) ==
+          APIReferenceGenerator.render_reference(SCHEMA)
+    @test read(joinpath(@__DIR__, "..", "docs", "src", "types.md"), String) ==
+          APIReferenceGenerator.render_types(SCHEMA)
+
 
     generated = Dict(String(name) => String(doc) for (name, doc) in Telegram.API.TELEGRAM_API)
     @test length(generated) == 185
