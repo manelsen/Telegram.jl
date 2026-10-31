@@ -108,4 +108,44 @@ end
     end
 end
 
+
+@testset "Concurrent requests retain distinct local trace IDs" begin
+    payloads = Channel{Any}(8)
+    server = HTTP.serve!("127.0.0.1", 0; verbose = false, listenany = true) do request
+        put!(payloads, JSON3.read(String(request.body)))
+        return HTTP.Response(200, ["Content-Type" => "application/json"],
+                             "{\"ok\":true,\"result\":true}")
+    end
+
+    try
+        client = TelegramClient(CONTRACT_TOKEN;
+            ep = "http://127.0.0.1:$(HTTP.port(server))/bot",
+            allow_insecure_http = true, enable_traceability = true, use_globally = false)
+
+        captured_logs = Test.TestLogger(min_level = Base.CoreLogging.Debug)
+        results = fill(false, 8)
+        Base.CoreLogging.with_logger(captured_logs) do
+            @sync for i in 1:8
+                @async results[i] = getMe(client) === true
+            end
+        end
+
+        @test all(results)
+        bodies = [take!(payloads) for _ in 1:8]
+        @test all(isempty, bodies)
+
+        request_logs = filter(log -> log.message == "Telegram API Request",
+                              captured_logs.logs)
+        @test length(request_logs) == 8
+        ids = [log.kwargs[:request_id] for log in request_logs]
+        @test length(unique(ids)) == 8
+        @test all(!isempty(id) for id in ids)
+        @test all(log.kwargs[:schema_version] == Telegram.DecisionSupport.get_schema_version()
+                  for log in request_logs)
+        @test all(endswith(log.kwargs[:timestamp], "Z") for log in request_logs)
+    finally
+        Base.close(server)
+    end
+end
+
 end # module TestHTTPContract
