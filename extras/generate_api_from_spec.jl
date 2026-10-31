@@ -10,7 +10,7 @@ const SPEC_FILE = joinpath(@__DIR__, "bot_api_10_3.min.json")
 const TICK = string(Char(96))
 
 read_spec() = JSON3.read(read(SPEC_FILE, String))
-sorted_pairs(obj) = [(name, getproperty(obj, Symbol(name))) for name in sort(String.(collect(keys(obj)); by=lowercase)]
+sorted_pairs(obj) = [(name, getproperty(obj, Symbol(name))) for name in sort(String.(collect(keys(obj))); by=lowercase)]
 
 function doc_for_method(name, method)
     io = IOBuffer()
