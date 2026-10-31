@@ -26,7 +26,7 @@ const SCHEMA = JSON3.read(read(SPEC_PATH, String))
         haskey(generated, name) || continue
         doc = generated[name]
         @test occursin(definition.href, doc)
-        for field in definition.fields
+        for field in get(definition, :fields, ())
             field_name = String(field.name)
             @test occursin(string("- ", Char(96), field_name, Char(96), ":"), doc)
             total_fields += 1
