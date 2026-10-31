@@ -183,6 +183,11 @@ end
         timestamps = [datetime_to_iso8601(generate_timestamp_utc()) for _ in 1:10]
         @test all(endswith(ts, "Z") for ts in timestamps)
         @test all(validate_timestamp_utc_format(ts) for ts in timestamps)
+        @test validate_timestamp_utc_format("2026-10-31T12:30:00.123Z")
+        @test !validate_timestamp_utc_format("2026-10-31T12:30:00.123")
+        @test !validate_timestamp_utc_format("not-a-timestamp")
+        @test validate_iso8601_format("2026-10-31T12:30:00.123Z")
+        @test !validate_iso8601_format("invalid")
     end
 end
 
