@@ -19,11 +19,13 @@ include(joinpath(@__DIR__, "..", "extras", "generate_api_from_spec.jl"))
     @test length(SCHEMA.methods) == 185
     @test length(SCHEMA.types) == 400
 
-    @test read(joinpath(@__DIR__, "..", "src", "telegram_api.jl"), String) ==
+    # Git on Windows may check out text with CRLF; compare semantic LF content.
+    normalize_lf(text) = replace(text, "\r\n" => "\n")
+    @test normalize_lf(read(joinpath(@__DIR__, "..", "src", "telegram_api.jl"), String)) ==
           APIReferenceGenerator.render_api(SCHEMA)
-    @test read(joinpath(@__DIR__, "..", "docs", "src", "reference.md"), String) ==
+    @test normalize_lf(read(joinpath(@__DIR__, "..", "docs", "src", "reference.md"), String)) ==
           APIReferenceGenerator.render_reference(SCHEMA)
-    @test read(joinpath(@__DIR__, "..", "docs", "src", "types.md"), String) ==
+    @test normalize_lf(read(joinpath(@__DIR__, "..", "docs", "src", "types.md"), String)) ==
           APIReferenceGenerator.render_types(SCHEMA)
 
 
