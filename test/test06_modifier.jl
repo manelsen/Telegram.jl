@@ -201,7 +201,7 @@ end
         @test !validate_schema_version("1.0")
     end
 
-    @testset "wire request includes version, request ID and UTC timestamp" begin
+    @testset "traceability stays local rather than changing the Bot API payload" begin
         observed = Ref{Any}(nothing)
         server = HTTP.serve!("127.0.0.1", 0; verbose = false, listenany = true) do request
             observed[] = JSON3.read(String(request.body))
@@ -214,15 +214,17 @@ end
                 use_globally = false, enable_traceability = true,
                 allow_insecure_http = true)
             first_id = client.request_id
-            @test Telegram.query(client, "getMe";
-                params = Dict{Symbol, Any}(:message => "synthetic")) === true
+            params = Dict{Symbol, Any}(:message => "synthetic")
+            @test Telegram.query(client, "getMe"; params) === true
             @test observed[] !== nothing
             @test observed[][:message] == "synthetic"
-            @test observed[][:_schema_version] == get_schema_version()
-            @test validate_uuid_format(observed[][:_request_id])
-            @test observed[][:_request_id] == client.request_id
-            @test observed[][:_request_id] != first_id
-            @test validate_timestamp_utc_format(observed[][:_timestamp])
+            @test length(keys(observed[])) == 1
+            @test !haskey(observed[], :_request_id)
+            @test !haskey(observed[], :_timestamp)
+            @test !haskey(observed[], :_schema_version)
+            @test validate_uuid_format(client.request_id)
+            @test client.request_id != first_id
+            @test params == Dict(:message => "synthetic")
         finally
             Base.close(server)
         end

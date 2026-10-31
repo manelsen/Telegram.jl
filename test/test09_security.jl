@@ -91,9 +91,10 @@ end
         traced = TelegramClient(SYNTHETIC_TOKEN; ep = endpoint, use_globally = false,
                                 allow_insecure_http = true)
         @test Telegram.query(traced, "getMe"; params = Dict{Symbol, Any}(:chat_id => 1)).id == 1
-        @test haskey(observed_request[], :_request_id)
-        @test haskey(observed_request[], :_timestamp)
-        @test haskey(observed_request[], :_schema_version)
+        @test !haskey(observed_request[], :_request_id)
+        @test !haskey(observed_request[], :_timestamp)
+        @test !haskey(observed_request[], :_schema_version)
+        @test !isempty(traced.request_id)
 
         @test Telegram.query(client, "upload";
             params = Dict{Symbol, Any}(:chat_id => 1,
