@@ -158,20 +158,13 @@ function query(client::TelegramClient, method; params = Dict())
         throw(TelegramError("Invalid Telegram API method name"))
     end
 
-    # DS-001: Traceability - Add request ID, timestamp, and schema version
+    # Traceability is local to the client and its logs. These metadata keys are
+    # not Bot API parameters and must not be sent to Telegram.
     if client.enable_traceability
-        # Generate new request ID for each query
-        client.request_id = DecisionSupport.generate_request_id()
-
-        # Add traceability metadata
-        params = copy(params)
-        metadata_key = keytype(params) <: Symbol ? Symbol : identity
-        params[metadata_key("_request_id")] = client.request_id
-        params[metadata_key("_timestamp")] = DecisionSupport.datetime_to_iso8601(DecisionSupport.generate_timestamp_utc())
-        params[metadata_key("_schema_version")] = DecisionSupport.get_schema_version()
-
-        # Log request ID (DS-001)
-        @debug "Telegram API Request" method=method request_id=client.request_id
+        request_id = DecisionSupport.generate_request_id()
+        client.request_id = request_id  # Last started request; not a per-task context.
+        timestamp = DecisionSupport.datetime_to_iso8601(DecisionSupport.generate_timestamp_utc())
+        @debug "Telegram API Request" method=method request_id=request_id timestamp=timestamp schema_version=DecisionSupport.get_schema_version()
     end
 
     req_uri = client.ep * bot_token * "/" * method_name
@@ -245,8 +238,6 @@ Sends `method` request to the telegram. It is recommended to use only if some of
 - `client::TelegramClient`: telegram client, can be omitted, in this case default client is used.
 """
 function apiquery(method, client::TelegramClient = DEFAULT_OPTS.client; kwargs...)
-    params = Dict{Symbol, Any}(kwargs)
-    params[:chat_id] = get(params, :chat_id, chatid(client))
-    params[:parse_mode] = get(params, :parse_mode, client.parse_mode)
-    query(client, method, params = params)
+    params = API.method_params(client, string(method), kwargs)
+    query(client, method; params = params)
 end
