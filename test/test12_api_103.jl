@@ -158,4 +158,43 @@ end
     end
 end
 
+@testset "Structured objects sharing upload field names remain JSON" begin
+    received = Ref{Any}(nothing)
+    server = HTTP.serve!("127.0.0.1", 0; listenany = true, verbose = false) do req
+        received[] = Dict(part.name => read(part.data, String)
+                          for part in HTTP.parse_multipart_form(req))
+        HTTP.Response(200, ["Content-Type" => "application/json"],
+                      "{\"ok\":true,\"result\":true}")
+    end
+    try
+        client = Telegram.TelegramClient("SYNTHETIC";
+            ep = "http://127.0.0.1:$(HTTP.port(server))/bot",
+            allow_insecure_http = true, use_globally = false,
+            enable_traceability = false)
+        photo = Dict("type" => "static", "photo" => "attach://document")
+        sticker = Dict("sticker" => "attach://document", "format" => "static",
+                       "emoji_list" => ["✅"])
+        for (method, field, value, kwargs) in (
+            (:setMyProfilePhoto, :photo, photo, (;)),
+            (:setBusinessAccountProfilePhoto, :photo, photo,
+             (; business_connection_id = "synthetic")),
+            (:addStickerToSet, :sticker, sticker,
+             (; user_id = 123, name = "synthetic")),
+            (:replaceStickerInSet, :sticker, sticker,
+             (; user_id = 123, name = "synthetic", old_sticker = "synthetic")),
+        )
+            for payload in (value, JSON3.read(JSON3.write(value)),
+                            (; (Symbol(k) => v for (k, v) in value)...))
+                @test getproperty(Telegram.API, method)(client;
+                    kwargs..., field => payload,
+                    document = "test.bin" => IOBuffer("synthetic-bytes")) === true
+                @test JSON3.read(received[][String(field)]) == JSON3.read(JSON3.write(value))
+                @test received[]["document"] == "synthetic-bytes"
+            end
+        end
+    finally
+        close(server)
+    end
+end
+
 end # module TestAPI103
