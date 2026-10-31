@@ -4,6 +4,7 @@ using Telegram
 using Telegram.DecisionSupport
 using Test
 using JSON3
+using Dates: DateTime
 
 export MockClient, FixtureClient, success_response, error_response
 export get_me_response, get_updates_response, send_message_response, set_chat_title_response

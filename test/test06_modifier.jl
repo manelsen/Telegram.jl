@@ -4,6 +4,7 @@ using Telegram.API
 using Telegram.DecisionSupport
 using Test
 using JSON3
+using HTTP
 using Dates
 using ..TestHelpers
 
@@ -76,10 +77,11 @@ end
         @test !validate_https_enforced(http_url)
     end
 
-    @testset "TLS certificate validation" begin
-        # HTTPS URLs imply TLS validation by HTTP.jl
-        https_url = "https://api.telegram.org/bot"
-        @test validate_https_enforced(https_url)
+    @testset "URL scheme validation (not a certificate handshake)" begin
+        @test validate_https_enforced("https://api.telegram.org/bot")
+        @test !validate_https_enforced("https://")
+        @test !validate_https_enforced("http://api.telegram.org/bot")
+        # A valid URL alone cannot prove a trusted TLS certificate.
     end
 
     @testset "checksum in notification" begin
@@ -153,52 +155,77 @@ end
 
 # INV-006: Parameters Serialized Consistently
 @testset "INV-006: Serialization Consistency" begin
-    @testset "same params, same serialization" begin
-        # FAIL: Need to verify JSON3.write consistency
+    @testset "serialization is repeatable for one set of parameters" begin
         params = Dict(:a => 1, :b => "test", :c => [1, 2, 3])
         serialized1 = JSON3.write(params)
         serialized2 = JSON3.write(params)
-        # Note: JSON3.write may order fields arbitrarily
-        # @test serialized1 == serialized2 || json_equivalent(serialized1, serialized2)
+        @test serialized1 == serialized2
+        parsed = JSON3.read(serialized1)
+        @test parsed[:a] == 1
+        @test parsed[:b] == "test"
+        @test collect(parsed[:c]) == [1, 2, 3]
     end
 end
 
 # INV-007: Unique IDs for All Operations
 @testset "INV-007: Unique IDs" begin
-    @testset "no duplicate IDs in session" begin
-        # FAIL: No ID generation
-        # ids = Set{String}()
-        # for i in 1:10
-        #     id = get_operation_id()
-        #     @test !(id in ids)
-        #     push!(ids, id)
-        # end
+    @testset "operation IDs do not repeat in a test session" begin
+        ids = [generate_operation_id("telegram") for _ in 1:100]
+        @test length(unique(ids)) == 100
+        @test all(startswith(id, "telegram-") for id in ids)
+        @test all(validate_uuid_format(id[length("telegram-")+1:end]) for id in ids)
     end
 end
 
 # INV-008: Timestamps in UTC
 @testset "INV-008: Timestamps in UTC" begin
-    @testset "all timestamps in UTC" begin
-        # FAIL: No timestamp generation
-        # for i in 1:10
-        #     ts = get_timestamp()
-        #     @test occursin("Z", ts)
-        # end
+    @testset "timestamps are consistently formatted as UTC" begin
+        timestamps = [datetime_to_iso8601(generate_timestamp_utc()) for _ in 1:10]
+        @test all(endswith(ts, "Z") for ts in timestamps)
+        @test all(validate_timestamp_utc_format(ts) for ts in timestamps)
+        @test validate_timestamp_utc_format("2026-10-31T12:30:00.123Z")
+        @test !validate_timestamp_utc_format("2026-10-31T12:30:00.123")
+        @test !validate_timestamp_utc_format("not-a-timestamp")
+        @test validate_iso8601_format("2026-10-31T12:30:00.123Z")
+        @test !validate_iso8601_format("invalid")
     end
 end
 
 # INV-011: Notification Schema Versioned
 @testset "INV-011: Versioned Schema" begin
-    @testset "version field present" begin
-        # FAIL: No version field
-        # notification = create_notification()
-        # @test haskey(notification, :version)
+    @testset "schema version follows supported contract" begin
+        version = get_schema_version()
+        @test occursin(r"^\d+\.\d+\.\d+$", version)
+        @test validate_schema_version(version; allow_minor = false)
+        @test !validate_schema_version("2.0.0")
+        @test !validate_schema_version("1.0")
     end
 
-    @testset "version follows semver" begin
-        # FAIL: No version validation
-        # @test is_semver("1.0.0")
-        # @test !is_semver("invalid")
+    @testset "wire request includes version, request ID and UTC timestamp" begin
+        observed = Ref{Any}(nothing)
+        server = HTTP.serve!("127.0.0.1", 0; verbose = false, listenany = true) do request
+            observed[] = JSON3.read(String(request.body))
+            return HTTP.Response(200, ["Content-Type" => "application/json"],
+                                 "{\"ok\":true,\"result\":true}")
+        end
+        try
+            client = TelegramClient("123456:SYNTHETIC_TOKEN";
+                ep = "http://127.0.0.1:$(HTTP.port(server))/bot",
+                use_globally = false, enable_traceability = true,
+                allow_insecure_http = true)
+            first_id = client.request_id
+            @test Telegram.query(client, "getMe";
+                params = Dict{Symbol, Any}(:message => "synthetic")) === true
+            @test observed[] !== nothing
+            @test observed[][:message] == "synthetic"
+            @test observed[][:_schema_version] == get_schema_version()
+            @test validate_uuid_format(observed[][:_request_id])
+            @test observed[][:_request_id] == client.request_id
+            @test observed[][:_request_id] != first_id
+            @test validate_timestamp_utc_format(observed[][:_timestamp])
+        finally
+            Base.close(server)
+        end
     end
 end
 
