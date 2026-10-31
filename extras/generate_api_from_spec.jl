@@ -35,8 +35,9 @@ function doc_for_method(name, method)
 end
 
 function escape_julia_string(s)
-    return replace(replace(replace(s, "\\" => "\\\\", "\$" => "\\\$"),
-                           "\"\"\"" => "\\\"\"\"")
+    value = replace(s, "\\" => "\\\\")
+    value = replace(value, "\$" => "\\\$")
+    return replace(value, "\"\"\"" => "\\\"\"\"")
 end
 
 function render_api(spec)
