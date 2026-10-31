@@ -12,44 +12,11 @@ API 9.4 adds:
 - Custom emoji support in messages
 """
 module V94
-using ...Telegram
-using ...Telegram.API
 
-"""
-    setMyProfilePhoto([client]; photo)
-
-Use this method to set the bot's profile photo. 
-Returns True on success.
-
-# Arguments
-- `photo`: InputProfilePhoto
-"""
-function setMyProfilePhoto(client::TelegramClient = DEFAULT_OPTS.client; kwargs...)
-    query(client, "setMyProfilePhoto", Dict{Symbol, Any}(kwargs))
-end
-
-"""
-    removeMyProfilePhoto([client])
-
-Use this method to remove the bot's profile photo. 
-Returns True on success.
-"""
-function removeMyProfilePhoto(client::TelegramClient = DEFAULT_OPTS.client; kwargs...)
-    query(client, "removeMyProfilePhoto", Dict{Symbol, Any}(kwargs))
-end
-
-"""
-    getUserProfileAudios([client]; user_id; kwargs...)
-
-Use this method to get a list of profile audios of a user. 
-Returns UserProfileAudios on success.
-
-# Arguments
-- `user_id`: User identifier
-"""
-function getUserProfileAudios(client::TelegramClient = DEFAULT_OPTS.client; kwargs...)
-    query(client, "getUserProfileAudios", Dict{Symbol, Any}(kwargs))
-end
+# Versioned compatibility namespace: reuse the generated Telegram.API methods.
+# Do not define independent wrappers; they would diverge from API's query contract.
+using ..API: setMyProfilePhoto, removeMyProfilePhoto, getUserProfileAudios
 
 export setMyProfilePhoto, removeMyProfilePhoto, getUserProfileAudios
-end
+
+end # module V94
